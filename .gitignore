@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# directories
+__pycache__/
+[Bb]in/
+[Oo]bj/
+[Dd]ep/
