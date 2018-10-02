@@ -2,7 +2,7 @@
 |:------------:|:-----------:|
 |   N. Curti   |   walkers   |
 
-# Random Walkers Simulator <img src="http://pearsephillips.com/gallery/Animation/pvw_walk.gif" width="40" height="40" />
+# Random Walkers Simulator <img src="http://pearsephillips.com/gallery/Animation/pvw_walk.gif" width="60" height="60" />
 
 Case study of random walkers simulations.
 
@@ -37,6 +37,12 @@ to compile the main example
 
 See also the list of [contributors](https://github.com/Nico-Curti/walkers/contributors) who partecipated in this project.
 
-### Acknowledgement
+## Acknowledgments
 
-Thanks goes to Dott.ssa Silvia Vitali who contribute to this project.
+Thanks goes to all contributors of this project:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore -->
+[<img src="https://avatars1.githubusercontent.com/u/41203427?s=400&v=4" width="100px;"/><br /><sub><b>Dott.ssa Silvia Vitali</b></sub>](https://github.com/silviavitali)<br />
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
