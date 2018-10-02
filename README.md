@@ -2,7 +2,7 @@
 |:------------:|:-----------:|
 |   N. Curti   |   walkers   |
 
-# Random Walkers Simulator
+# Random Walkers Simulator <img src="http://pearsephillips.com/gallery/Animation/pvw_walk.gif" width="40" height="40" />
 
 Case study of random walkers simulations.
 
