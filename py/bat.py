@@ -1,5 +1,11 @@
 #!usr/bin/python
 
+# Reference : https://www.sciencedirect.com/science/article/pii/S0045794913002162
+#             https://arxiv.org/pdf/1004.4170.pdf
+#             https://www.researchgate.net/publication/258478684_Bat_Algorithm_Inspired_Algorithm_for_Solving_Numerical_Optimization_Problems
+
+# Maybe
+
 import numpy as np
 import time
 import sys
@@ -32,8 +38,8 @@ def bat(objfunc,
         step = 1e-3   # scale of normal random generator
         ):
   # Initializing arrays
-  Q  = Qmin + (Qmin - Qmax) * np.random.rand(max_iters, n_population)
-  v = np.zeros(shape=(dim, n_population), dtype=float) # velocities
+  Qt = np.random.uniform(low=Qmin, high=Qmax, size=(max_iters, n_population))
+  v  = np.zeros(shape=(dim, n_population), dtype=float) # velocities
   walk = np.empty(shape=(max_iters,), dtype=float)
 
   # Initialize the population/solutions
@@ -53,38 +59,37 @@ def bat(objfunc,
   fmin = fitness[best]
   best = np.array(Sol[:, best], ndmin=2)
 
-  rng = np.random.uniform(low=0., high=1., size=(max_iters,
-                                                 n_population))
-  rng = rng > r
-  dim_rng = np.sum(rng, axis=1)
-  rng2 = np.random.uniform(low=0., high=1., size=(max_iters,
+  rngt = np.random.uniform(low=0., high=1., size=(max_iters,
                                                   n_population))
-  rng2 = rng2 < A
+  rngt = rngt > r
+  dim_rngt = np.sum(rngt, axis=1)
+  rng2t = np.random.uniform(low=0., high=1., size=(max_iters,
+                                                   n_population))
+  rng2t = rng2t < A
   # main loop
-  for t in range(max_iters):
-    v += Q[t] * (Sol - best.T)
+  for (t, Q), rng, rng2, dim_rng in zip(enumerate(Qt), rngt, rng2t, dim_rngt):
+    v += Q * (Sol - best.T)
     S  = Sol + v
 
     # check boundaries
     Sol = np.clip(Sol, lower_bound, upper_bound)
 
     # Pulse rate
-    S[:, rng[t]] = best.T + step * np.random.randn(dim, dim_rng[t])
+    S[:, rng] = best.T + step * np.random.randn(dim, dim_rng)
 
     # Evaluate new solutions
     fit_new = np.apply_along_axis(objfunc, 0, S)
 
     # Update if the solution improves
-    upd = np.logical_and(rng2[t], fit_new <= fitness)
+    upd = np.logical_and(rng2, fit_new <= fitness)
     Sol[:, upd] = S[:, upd]
     fitness[upd] = fit_new[upd]
 
     tmp_best = np.argmin(fit_new)
-    tmp_fmin = fit_new[tmp_best]
     # Update the current best solution
-    if tmp_fmin <= fmin:
+    if fit_new[tmp_best] <= fmin:
+      fmin = fit_new[tmp_best]
       best = np.array(S[:, tmp_best], ndmin=2)
-      fmin = tmp_fmin
     # Update convergence curve
     walk[t] = fmin
 
@@ -94,7 +99,7 @@ def bat(objfunc,
                        '=' * int(t / 20),
                        fmin,
                        time.time() - solution["start_time"]))
-
+  sys.stdout.write('\n')
   solution["end_time"] = time.time()
   solution["run_time"] = solution["end_time"] - solution["start_time"]
   solution["walk"]     = walk

@@ -1,8 +1,12 @@
 #!usr/bin/python
 
+# Reference: https://research.ijcaonline.org/volume69/number3/pxc3887528.pdf
+#            http://www2.siit.tu.ac.th/bunyarit/publications/2014_Aor_ADCONIP2014_Japan.pdf
+
+# OK
+
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
-from scipy.special import gamma
 import time
 import sys
 
@@ -20,7 +24,7 @@ solution = {"best" : 0.,
             "max_iters" : 0.
         }
 
-new_alpha = lambda alpha, n_pop : (-1e-4/.9)**(1. / n_pop) * alpha
+new_alpha = lambda alpha, max_iters : (1e-4/.9)**(1. / max_iters) * alpha
 
 def ffa( objfunc,
         lower_bound,
@@ -29,12 +33,13 @@ def ffa( objfunc,
         n_population, # Population size
         max_iters,    # Number of generations
         alpha = .5,   # Randomness 0--1 (highly random)
-        beta = .2,    # minimum value of beta
+        betamin = .2, # minimum value of beta
+        beta0 = 1.,   #
         gamma = 1.    # Absorption coefficient
         ):
   ns = np.random.uniform(low=lower_bound,
                          high=upper_bound,
-                         size=(dim, n_population))
+                         size=(n_population, dim))
   walk = np.empty(shape=(max_iters,), dtype=float)
   domain = abs(upper_bound - lower_bound)
 
@@ -47,30 +52,36 @@ def ffa( objfunc,
   timer = time.time()
   solution["start_time"] = timer
 
-  alphas = [alpha] * (max_iters + 1)
-  alphas = [new_alpha(a[i - 1], max_iters) for i in range(max_iters)]
-
   # main loop
   for t in range(max_iters):
+    # This line of reducing alpha is optional
+    alpha = new_alpha(alpha, max_iters)
     # Evaluate new solutions (for all n fireflies)
-    zn = np.apply_along_axis(objfunc, 0, ns)
-    best = np.argmin(zn)
-    fmin = fitness[best]
-    best = np.array(ns[:, best], ndmin=2)
+    fitness = np.apply_along_axis(objfunc, 1, ns)
 
-    D = squareform(pdist(ns, "euclidean"))**2
-    # mega miss
+    fmin = min(fitness)
+
+    r = squareform(pdist(ns, "euclidean"))
+    lightn, light0 = np.meshgrid(fitness, fitness)
+    ii, jj = (light0 > lightn).nonzero()
+    # The attractiveness parameter beta=exp(-gamma*r)
+    beta = (beta0 - betamin) * np.exp(-gamma * r * r) + betamin
+
+    rng = np.random.uniform(low=-.5 * domain * alpha,
+                            high=.5 * domain * alpha,
+                            size=(n_population, n_population, dim))
+    for i, j, b, r in zip(ii, jj, beta[ii, jj], rng[ii, jj]):
+      ns[i, :] = ns[i, :] * (1. - b) + ns[j, :] * b + r
 
     # Update convergence curve
     walk[t] = fmin
-
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
                        '=' * int(t / 20),
                        fmin,
                        time.time() - solution["start_time"]))
-
+  sys.stdout.write('\n')
   solution["end_time"] = time.time()
   solution["run_time"] = solution["end_time"] - solution["start_time"]
   solution["walk"] = walk

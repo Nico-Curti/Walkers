@@ -1,5 +1,10 @@
 #!usr/bin/python
 
+# Refence : https://www.sciencedirect.com/science/article/pii/S2214785317313433
+#           https://www.cs.tufts.edu/comp/150GA/homeworks/hw3/_reading7%20Cuckoo%20search.pdf
+
+# Maybe
+
 import numpy as np
 from scipy.special import gamma
 import time
@@ -54,11 +59,12 @@ def cs( objfunc,
   fitness = np.apply_along_axis(objfunc, 0, nest)
   best = np.argmin(fitness)
   fmin = fitness[best]
-  best = np.array(nest[:, best], ndmin=2)
+  best = np.array(nest[:, best], ndmin=2).T
 
   # main loop
   for t in range(max_iters):
     # Generate new solutions (but keep the current best)
+    # get_cukoos function
     u = np.random.randn(dim, n_population) * sigma
     v = np.random.randn(dim, n_population)
     step = u / abs(v)**(beta_inv)
@@ -66,36 +72,42 @@ def cs( objfunc,
     s = nest + stepsize * np.random.randn(dim, n_population)
     new_nest = np.clip(s, lower_bound, upper_bound)
 
-    # # Evaluate new solutions and find best
-    # fit_new  = np.apply_along_axis(objfunc, 0, new_nest)
-    # tmp_best = np.argmin(fit_new)
-    # tmp_fmin = fit_new[tmp_best]
-    # if tmp_fmin <= fmin: # to check
-    #   best = np.array(new_nest[:, tmp_best], ndmin=2)
-    #   fmin = tmp_fmin
+    # Evaluate new solutions and find best
+    # get_best_nest function
+    fit_new  = np.apply_along_axis(objfunc, 0, new_nest)
+    idx = fit_new <= fitness
+    fitness[idx] = fit_new[idx]
+    nest[:, idx] = new_nest[:, idx]
 
     rng = np.random.uniform(low=0., high=1., size=(dim, n_population))
     rng = rng > pa
-    new_nest[rng] +=
+    new_nest[rng] += np.random.uniform(low=0., high=1., size=(dim, n_population))[rng] * \
+                     (                                                                   \
+                      new_nest[:, np.random.permutation(n_population)] -                 \
+                      new_nest[:, np.random.permutation(n_population)]                   \
+                     )[rng]
 
     # Evaluate new solutions and find best
+    # get_best_nest function
     fit_new  = np.apply_along_axis(objfunc, 0, new_nest)
+    idx = fit_new <= fitness
+    fitness[idx] = fit_new[idx]
+    nest[:, idx] = new_nest[:, idx]
+
     tmp_best = np.argmin(fit_new)
-    tmp_fmin = fit_new[tmp_best]
-    if tmp_fmin <= fmin: # to check
-      best = np.array(new_nest[:, tmp_best], ndmin=2)
-      fmin = tmp_fmin
+    if fit_new[tmp_best] < fmin: # to check
+      fmin = fit_new[tmp_best]
+      best = np.array(new_nest[:, tmp_best], ndmin=2).T
 
     # Update convergence curve
     walk[t] = fmin
-
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
                        '=' * int(t / 20),
                        fmin,
                        time.time() - solution["start_time"]))
-
+  sys.stdout.write('\n')
   solution["end_time"] = time.time()
   solution["run_time"] = solution["end_time"] - solution["start_time"]
   solution["walk"]     = walk
