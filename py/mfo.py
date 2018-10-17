@@ -49,9 +49,10 @@ def mfo(objfunc,
   solution["start_time"] = time.time()
 
   fitness = np.apply_along_axis(objfunc, 0, positions)
-  best = np.argmin(fitness)
-  fmin = fitness[best]
-  best = np.array(positions[:, best], ndmin=2)
+
+  idx = np.argsort(fitness)
+  sort_pos = pos[idx, :]
+  fmin = fitness[idx[0]]
 
   # main loop
   for (t, a), flame in zip(enumerate(at), flames):
