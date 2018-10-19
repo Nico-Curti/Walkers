@@ -68,7 +68,7 @@ class CrossInTrayFunction(ObjectiveFunction):
   def evaluate(self, arr):
     assert(len(arr) == self.dim)
     x, y = arr
-    return -1e-4 * (abs(np.sin(x)*np.sin(y)*np.exp(abs(100. - np.sqrt(sum(arr*arr)) / np.pi)) ) + 1.)** 1e-1
+    return -1e-4 * (abs(np.sin(x)*np.sin(y)*np.exp(abs(100. - np.sqrt(sum(arr*arr)) / np.pi)) ) + 1.)**1e-1
 
   def get_minimum(self):
     return np.array([ (1.3491, -1.3491), (1.3491, 1.3491), (-1.3491, 1.3491), (-1.3491, -1.3491) ])

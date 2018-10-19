@@ -40,7 +40,7 @@ def pso(objfunc,
                           size=(dim, n_population))
   vel = np.zeros(shape=(dim, n_population))
   wt = np.linspace(wmax, wmin, num=max_iters)
-  p_score = np.asarray([np.inf] * n_population)
+  p_score = np.repeat(np.inf, repeats=n_population)
   p_best = np.zeros(shape=(dim, n_population), dtype=float)
   g_score = np.inf
   g_best  = np.zeros(shape=(1, dim))

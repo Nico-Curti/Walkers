@@ -1,5 +1,5 @@
-#ifndef WOA_H
-#define WOA_H
+#ifndef PSO_H
+#define PSO_H
 #ifdef VERBOSE
 #include <iostream>
 #endif
@@ -19,24 +19,34 @@ namespace walker
            const int &dim,
            const int &n_population,
            const int &max_iters,
-           float b = 1.f,
+           float Vmax = 6.f,
+           float wmax = .9f,
+           float wmin = .2f,
+           float c1   = 2.f,
+           float c2   = 2.f,
            std::size_t seed = 0,
            int verbose = 1,
            int nth = 4)
   {
     typedef std::pair<int, float> best_idx;
     int iteration = 0;
-    best_idx leader;
-    float fitness;
+    best_idx best;
 
     std::unique_ptr<float*, std::function<void(float**)>> positions(new float*[n_population](),
                                                                     [&](float** x)
                                                                     {
                                                                       std::for_each(x, x + dim, std::default_delete<float[]>());
                                                                       delete[] x;
-                                                                    });
+                                                                    }),
+                                                          velocity(new float*[n_population](),
+                                                                   [&](float** x)
+                                                                   {
+                                                                     std::for_each(x, x + dim, std::default_delete<float[]>());
+                                                                     delete[] x;
+                                                                   });
+    std::unique_ptr<float[]> fitness(new float[n_population]);
 
-    solution s(n_population, max_iters, "WOA");
+    solution s(n_population, max_iters, "PSO");
 
     std::mt19937 engine(seed);
     std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
@@ -47,20 +57,26 @@ namespace walker
     s.start_time = timer;
 
 #ifdef VERBOSE
-    std::cout << "WOA is optimizing..." << std::endl;
+    std::cout << "PSO is optimizing..." << std::endl;
 #endif
 
 #ifdef _OPENMP
 #pragma omp declare reduction (minPair : best_idx : omp_out = omp_in.second < omp_out.second ? omp_in : omp_out) initializer(omp_priv = omp_orig)
-#pragma omp parallel num_threads(nth) private(fitness)
+#pragma omp parallel num_threads(nth)
   {
 #endif
 
 #ifdef _OPENMP
 #pragma omp for
-    for (int i = 0; i < n_population; ++i) (positions.get()) = new float[dim];
+    for (int i = 0; i < n_population; ++i)
+    {
+      (positions.get()) = new float[dim];
+      (velocity.get())  = new float[dim];
+      fitness[i]        = inf;
+    }
 #else
     std::generate_n(positions.get(), n_population, [](){return new float[dim];});
+    std::generate_n(velocity.get(),  n_population, [](){return new float[dim];});
 #endif
 
     // initialize the positions/solutions
@@ -69,55 +85,31 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
       for (int j = 0; j < dim; ++j)
+      {
         positions[i][j] = bound_rng(engine);
+        velocity[i][j]  = 0.f;
+      }
 
     // main loop
     while(iteration < max_iters)
     {
-      leader.second = inf;
-      leader.first  = 0;
+      best.second = inf;
+      best.first  = 0;
+
 #ifdef _OPENMP
-#pragma omp for reduction(minPair : leader)
+#pragma omp for reduction(minPair : best)
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        // compute objective function for each search agent
-        fitness = fit(population[i]);
-        // update the leader
-        leader.first  = fitness < leader.second ? i       : leader.first; // update alpha
-        leader.second = fitness < leader.second ? fitness : leader.second;
+        float f = fit(positions[i]);
+        // find the initial best solution
+        best.first   = f < best.second  ? i : best.first;
+        best.second  = f < best.second  ? f : best.second;
+
+        fitness[i]   = f < fitness[i]   ? f : fitness[i];
       }
 
-      float a  = 2.f - iteration * (2.f / max_iters); // a decreases linearly from 2 to 0 in Eq. (2.3)
-      float a2 = 1.f + iteration * (-1.f / max_iters);// a2 linearly decreases from -1 to -2 to calculate t in Eq. (3.12)
-
-      // update the position of search agents
-#ifdef _OPENMP
-#pragma omp for
-#endif
-      for (int i = 0; i < n_population; ++i)
-      {
-        float r1 = rng(engine);
-        float r2 = rng(engine);
-
-        float A    = 2.f * a * r1 - a; // Eq. (2.3) in the paper
-        float C    = 2.f * r2;         // Eq. (2.4) in the paper
-        float l    = (a2 - 1.f) * rng(engine) + 1.f; // parameters in Eq. (2.5)
-        bool p     = static_cast<bool>(rng(engine) > .5f);      // Eq. (2.6)
-        bool a_abs = static_cast<bool>(std::fabs(A) >= 1.f);
-
-        for (int j = 0; j < dim; ++j)
-        {
-          position[i][j] = (p && a_abs)  ? position[][j] - A * std::fabs(C * position[][j] - position[i][j])                         :
-                           (p && !a_abs) ? position[leader.first][j] - A * std::fabs(C * position[leader.first][j] - position[i][j]) :
-                            std::fabs(position[leader.first][j] - position[i][j]) * std::exp(b * l) * std::cos(l * 2.f * M_PI) + position[leader.first][j];
-          positions[i][j] = (positions[i][j] < lower_bound) ? lower_bound :
-                            (positions[i][j] > upper_bound) ? upper_bound :
-                             positions[i][j];
-        }
-      }
-
-      s.walk[iteration] = positions[leader.first];
+      s.walk[iteration] = positions[best.first];
 
 #ifdef _OPENMP
 #pragma omp single
@@ -132,9 +124,9 @@ namespace walker
     timer = std::chrono::high_resolution_clock::now();
     s.end_time = timer;
     s.execution_time = std::chrono::duration_cast<std::chrono::seconds>(s.end_time - s.start_time).count();
-    s.best = leader.second;
+    s.best = best.second;
 
     return s;
   }
 
-#endif // WOA_H
+#endif // PSO_H

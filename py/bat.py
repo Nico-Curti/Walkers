@@ -71,9 +71,6 @@ def bat(objfunc,
     v += Q * (Sol - best.T)
     S  = Sol + v
 
-    # check boundaries
-    Sol = np.clip(Sol, lower_bound, upper_bound)
-
     # Pulse rate
     S[:, rng] = best.T + step * np.random.randn(dim, dim_rng)
 
@@ -84,6 +81,9 @@ def bat(objfunc,
     upd = np.logical_and(rng2, fit_new <= fitness)
     Sol[:, upd] = S[:, upd]
     fitness[upd] = fit_new[upd]
+
+    # check boundaries
+    Sol = np.clip(Sol, lower_bound, upper_bound)
 
     tmp_best = np.argmin(fit_new)
     # Update the current best solution
