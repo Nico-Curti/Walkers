@@ -2,7 +2,7 @@
 
 # Reference : https://www.sciencedirect.com/science/article/pii/S0965997813001853
 #             https://www.sciencedirect.com/science/article/pii/S0965997816301260
-# Maybe
+
 import numpy as np
 import time
 import sys

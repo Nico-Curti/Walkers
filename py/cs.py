@@ -3,8 +3,6 @@
 # Refence : https://www.sciencedirect.com/science/article/pii/S2214785317313433
 #           https://www.cs.tufts.edu/comp/150GA/homeworks/hw3/_reading7%20Cuckoo%20search.pdf
 
-# Maybe
-
 import numpy as np
 from scipy.special import gamma
 import time

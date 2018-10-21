@@ -1,12 +1,11 @@
 #!usr/bin/python
 
-# Reference : https://www.sciencedirect.com/science/article/pii/S0950705115002580
-
-# WRONG
+# Reference :
 
 import numpy as np
 import time
 import sys
+import sklearn.preprocessing as sk
 
 np.random.seed(123)
 
@@ -23,70 +22,67 @@ solution = {"best" : 0.,
         }
 
 
-def mfo(objfunc,
+def mvo(objfunc,
         lower_bound,
         upper_bound,
         dim,          # Number of dimensions
         n_population, # Population size
         max_iters,    # Number of generations
-        b = 1.        #
+        wep_max = 1., #
+        wep_min = .2  #
         ):
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
-  positions = np.random.uniform(low=lower_bound,
+  universes = np.random.uniform(low=lower_bound,
                                 high=upper_bound,
                                 size=(dim, n_population))
-  at = np.linspace(-1, -2, num=max_iters)
-  flames = [np.round(n_population - i*(n_population - 1)/max_iters)
-            for i in range(1, max_iters + 1)]
 
-  print ("MFO is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "MFO"
+  tdrt = [1. - i**.16666 / max_iters**.1666 for i in range(max_iters)]
+  wept = np.linspace(wep_min, wep_max, num=max_iters)
+
+  score = np.inf
+  pos = np.zeros(shape=(1, dim), dtype=float)
+
+  print ("MVO is optimizing \"" + objfunc.__name__ + "\"")
+  solution["optimizer"]  = "MVO"
   solution["dimension"]  = dim,
   solution["population"] = n_population
   solution["max_iters"]  = max_iters
   solution["objfname"]   = objfunc.__name__
   solution["start_time"] = time.time()
 
-  fitness = np.apply_along_axis(objfunc, 0, positions)
-
-  idx = np.argsort(fitness)
-  sort_pos = pos[idx, :]
-  fmin = fitness[idx[0]]
-
   # main loop
-  for (t, a), flame in zip(enumerate(at), flames):
-    # Check if moths go out of the search spaceand bring it back
-    positions = np.clip(positions, lower_bound, upper_bound)
-    # evaluate moths
-    fitness = np.apply_along_axis(objfunc, 0, positions)
+  for (t, wep), tdr in zip(enumerate(wept), tdrt):
+    universes = np.clip(universes, lower_bound, upper_bound)
+    fitness = np.apply_along_axis(objfunc, 0, universes)
 
-    t = (a - 1.) * np.random.uniform(low=1,
-                                     high=(a - 1.) + 1,
-                                     size=(dim, n_population))
-    positions[:, : flame] = * np.exp(b * t) * np.cos(t * 2. * np.pi) +
-    positions[:, flame: ] = * np.exp(b * t) * np.cos(t * 2. * np.pi) +
+    # Update the leader
+    idx = np.argmin(fitness)
+    if fitness[idx] < score:
+      leader_score = fitness[idx]
+      leader_pos   = np.array(pos[:, idx], ndmin=2).T
+
+    n = sk.normalize(fitness.reshape((1, -1)), norm='l2', axis=1)
 
     # Update convergence curve
-    walk[t] = fmin
-
+    walk[t] = leader_score
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
                        '=' * int(t / 20),
-                       fmin,
+                       score,
                        time.time() - solution["start_time"]))
   sys.stdout.write('\n')
   solution["end_time"] = time.time()
   solution["run_time"] = solution["end_time"] - solution["start_time"]
   solution["walk"]     = walk
-  solution["best"]     = fmin
+  solution["best"]     = score
 
 
 if __name__ == "__main__":
   # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
+  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))  \
+                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x))   \
                          + 22.718281828459045
 
   n_population = 50
@@ -95,7 +91,7 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  mfo(score_func,
+  mvo(score_func,
       lower_bound,
       upper_bound,
       dim,

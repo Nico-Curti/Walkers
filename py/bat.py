@@ -4,8 +4,6 @@
 #             https://arxiv.org/pdf/1004.4170.pdf
 #             https://www.researchgate.net/publication/258478684_Bat_Algorithm_Inspired_Algorithm_for_Solving_Numerical_Optimization_Problems
 
-# Maybe
-
 import numpy as np
 import time
 import sys

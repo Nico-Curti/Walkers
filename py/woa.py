@@ -2,7 +2,6 @@
 
 # Reference : https://en.wikiversity.org/wiki/Whale_Optimization_Algorithm
 
-# OK
 import numpy as np
 import time
 import sys

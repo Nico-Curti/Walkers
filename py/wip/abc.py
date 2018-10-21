@@ -2,7 +2,6 @@
 
 # Reference :
 #https://it.mathworks.com/matlabcentral/fileexchange/52966-artificial-bee-colony-abc-in-matlab
-# WRONG
 
 import numpy as np
 import time

@@ -3,8 +3,6 @@
 # Reference: https://research.ijcaonline.org/volume69/number3/pxc3887528.pdf
 #            http://www2.siit.tu.ac.th/bunyarit/publications/2014_Aor_ADCONIP2014_Japan.pdf
 
-# OK
-
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
 import time

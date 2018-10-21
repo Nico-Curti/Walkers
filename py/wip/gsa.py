@@ -2,8 +2,6 @@
 
 # Reference :
 
-# WRONG
-
 # https://github.com/himanshuRepo/Gravitational-Search-Algorithm/
 
 import numpy as np
