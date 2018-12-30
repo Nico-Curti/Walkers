@@ -1,6 +1,6 @@
 | **Authors**  | **Project** | **Build Status**              |
 |:------------:|:-----------:|:-----------------------------:|
-|   N. Curti   |   walkers   | **Linux/MacOS** : *miss* <br/> **Windows** : *miss*  |
+|   N. Curti   |   Walkers   | **Linux/MacOS** : [![Travis](https://travis-ci.com/Nico-Curti/Walkers.svg?branch=master)](https://travis-ci.com/Nico-Curti/Walkers) <br/> **Windows** : [![appveyor](https://ci.appveyor.com/api/projects/status/x7sbj6atp1a9cwuv?svg=true)](https://ci.appveyor.com/project/Nico-Curti/walkers)  |
 
 [![GitHub pull-requests](https://img.shields.io/github/issues-pr/Nico-Curti/walkers.svg?style=plastic)](https://github.com/Nico-Curti/walkers/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/Nico-Curti/walkers.svg?style=plastic)](https://github.com/Nico-Curti/walkers/issues)
