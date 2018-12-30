@@ -15,7 +15,6 @@ namespace walker
           int nth = 4
           )
   {
-    using res_t = typename std::result_of<Func(const genome &)>::type; // since c++17
     typedef std::pair<int, float> best_idx;
     int iteration = 0;
     best_idx best;
@@ -26,8 +25,7 @@ namespace walker
     std::uniform_real_distribution<float> rng(lower_bound, upper_bound);
 
     // Initialize timer for the experiment
-    auto timer = std::chrono::high_resolution_clock::now();
-    s.start_time = timer;
+    auto start_time = std::chrono::high_resolution_clock::now();
 
 #ifdef VERBOSE
     std::cout << "CS is optimizing..." << std::endl;
@@ -39,7 +37,7 @@ namespace walker
 #endif
 
     // main loop
-    while(iteration < max_iter)
+    while(iteration < max_iters)
     {
 
 
@@ -57,9 +55,8 @@ namespace walker
   } // end parallel section
 #endif
 
-    timer = std::chrono::high_resolution_clock::now();
-    s.end_time = timer;
-    s.execution_time = std::chrono::duration_cast<std::chrono::seconds>(s.end_time - s.start_time).count();
+    auto end_time = std::chrono::high_resolution_clock::now();
+    s.execution_time = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
     s.best = best.second;
 
     return s;

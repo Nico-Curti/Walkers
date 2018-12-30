@@ -97,9 +97,9 @@ namespace walker
 
         for (int j = 0; j < dim; ++j)
         {
-          (positions.get())[i][j] = (p && a_abs)  ? (positions.get())[/*MISS*/][j] - A * std::fabs(C * (positions.get())[/*MISS*/][j] - (positions.get())[i][j])                         :
-                                    (p && !a_abs) ? (positions.get())[leader.first][j] - A * std::fabs(C * (positions.get())[leader.first][j] - (positions.get())[i][j]) :
-                                    std::fabs((positions.get())[leader.first][j] - (positions.get())[i][j]) * std::exp(b * l) * std::cos(l * 2.f * M_PI) + (positions.get())[leader.first][j];
+          //(positions.get())[i][j] = (p && a_abs)  ? (positions.get())[/*MISS*/][j] - A * std::fabs(C * (positions.get())[/*MISS*/][j] - (positions.get())[i][j])                         :
+          //                          (p && !a_abs) ? (positions.get())[leader.first][j] - A * std::fabs(C * (positions.get())[leader.first][j] - (positions.get())[i][j]) :
+          //                          std::fabs((positions.get())[leader.first][j] - (positions.get())[i][j]) * std::exp(b * l) * std::cos(l * 2.f * M_PI) + (positions.get())[leader.first][j];
           (positions.get())[i][j] = ((positions.get())[i][j] < lower_bound) ? lower_bound :
                                     ((positions.get())[i][j] > upper_bound) ? upper_bound :
                                      (positions.get())[i][j];

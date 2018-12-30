@@ -132,15 +132,15 @@ clean:                  ##@utils Clean all files.
 	@printf "%-80s " "Cleaning all files..."
 	@rm -rf $(OBJS) $(ALIB) $(SLIB) $(OBJ_DIR)/* $(DEP_DIR)/*
 	@printf "[done]\n"
-$(DEP_DIR):       ##@utils Make dependencies directory.
+$(DEP_DIR):             ##@utils Make dependencies directory.
 	@printf "%-80s " "Creating dependencies directory ..."
 	@$(mkdir_dep)
 	@printf "[done]\n"
-$(OBJ_DIR):       ##@utils Make objs directory.
+$(OBJ_DIR):             ##@utils Make objs directory.
 	@printf "%-80s " "Creating objs directory ..."
 	@$(mkdir_obj)
 	@printf "[done]\n"
-$(OUT_DIR):       ##@utils Make output (executables) directory.
+$(OUT_DIR):             ##@utils Make output (executables) directory.
 	@printf "%-80s " "Creating output directory ..."
 	@$(mkdir_out)
 	@printf "[done]\n"

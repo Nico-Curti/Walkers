@@ -22,12 +22,8 @@ namespace walker
 #endif
     int iteration = 0;
 
-    std::unique_ptr<float*, std::function<void(float**)>> positions(new float*[n_population](),
-                                                                    [&](float** x)
-                                                                    {
-                                                                      std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                      delete[] x;
-                                                                    });
+    std::shared_ptr<std::shared_ptr<std::function<float[]>>[]> positions(new std::shared_ptr<std::function<float[]>>[n_population]);
+
     std::unique_ptr<float[]> fitness(new float[n_population]);
     std::unique_ptr<int[]> rank(new int[n_population]);
 
@@ -45,7 +41,6 @@ namespace walker
 #endif
 
 #ifdef _OPENMP
-#pragma omp declare reduction (minPair : best_idx : omp_out = omp_in.second < omp_out.second ? omp_in : omp_out) initializer(omp_priv = omp_orig)
 #pragma omp parallel num_threads(nth)
   {
 #endif
@@ -54,7 +49,7 @@ namespace walker
 #pragma omp for
     for (int i = 0; i < n_population; ++i)
     {
-      (positions.get()) = new float[dim];
+      positions[i] = new float[dim];
       rank[i] = i;
     }
 #else
@@ -68,7 +63,7 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
       for (int j = 0; j < dim; ++j)
-        (positions.get())[i][j] = bound_rng(engine);
+        positions[i].get()[j] = bound_rng(engine);
 
 #ifdef _OPENMP
 #pragma omp for
@@ -101,7 +96,7 @@ namespace walker
     {
 
 
-      s.walk[iteration] = (positions.get())[rank[0]];
+      s.walk[iteration] = positions[rank[0]];
 
 #ifdef _OPENMP
 #pragma omp single
@@ -115,7 +110,7 @@ namespace walker
 
     auto end_time = std::chrono::high_resolution_clock::now();
     s.execution_time = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();
-    s.best = best.second;
+    s.best = fitness[0];
 
     return s;
   }

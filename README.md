@@ -1,8 +1,20 @@
-| **Authors**  | **Project** |
-|:------------:|:-----------:|
-|   N. Curti   |   walkers   |
+| **Authors**  | **Project** | **Build Status**              |
+|:------------:|:-----------:|:-----------------------------:|
+|   N. Curti   |   walkers   | **Linux/MacOS** : *miss* <br/> **Windows** : *miss*  |
 
-# Random Walkers Simulator <img src="http://pearsephillips.com/gallery/Animation/pvw_walk.gif" width="60" height="60" />
+[![GitHub pull-requests](https://img.shields.io/github/issues-pr/Nico-Curti/walkers.svg?style=plastic)](https://github.com/Nico-Curti/walkers/pulls)
+[![GitHub issues](https://img.shields.io/github/issues/Nico-Curti/walkers.svg?style=plastic)](https://github.com/Nico-Curti/walkers/issues)
+
+[![GitHub stars](https://img.shields.io/github/stars/Nico-Curti/walkers.svg?label=Stars&style=social)](https://github.com/Nico-Curti/walkers/stargazers)
+[![GitHub watchers](https://img.shields.io/github/watchers/Nico-Curti/walkers.svg?label=Watch&style=social)](https://github.com/Nico-Curti/walkers/watchers)
+
+<a href="https://github.com/UniboDIFABiophysics">
+<div class="image">
+<img src="https://cdn.rawgit.com/physycom/templates/697b327d/logo_unibo.png" width="90" height="90">
+</div>
+</a>
+
+# Random Walkers Simulator
 
 Case study of random walkers simulations.
 
