@@ -6,21 +6,7 @@ import numpy as np
 import time
 import sys
 import sklearn.preprocessing as sk
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
 
 def mvo(objfunc,
         lower_bound,
@@ -29,13 +15,20 @@ def mvo(objfunc,
         n_population, # Population size
         max_iters,    # Number of generations
         wep_max = 1., #
-        wep_min = .2  #
+        wep_min = .2, #
+        universes = None,
+        seed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
-  universes = np.random.uniform(low=lower_bound,
-                                high=upper_bound,
-                                size=(dim, n_population))
+
+  if universes == None:
+    universes = np.random.uniform(low=lower_bound,
+                                  high=upper_bound,
+                                  size=(dim, n_population))
 
   tdrt = [1. - i**.16666 / max_iters**.1666 for i in range(max_iters)]
   wept = np.linspace(wep_min, wep_max, num=max_iters)
@@ -44,12 +37,14 @@ def mvo(objfunc,
   pos = np.zeros(shape=(1, dim), dtype=float)
 
   print ("MVO is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "MVO"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "MVO",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   # main loop
   for (t, wep), tdr in zip(enumerate(wept), tdrt):
@@ -71,12 +66,16 @@ def mvo(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        score,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = score
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = leader_score
+  sol.population = universes
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -91,9 +90,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  mvo(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = mvo(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)

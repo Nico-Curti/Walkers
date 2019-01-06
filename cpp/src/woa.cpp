@@ -19,18 +19,10 @@ namespace walker
     best_idx leader;
     float fitness;
 
-    std::unique_ptr<float*, std::function<void(float**)>> positions(new float*[n_population](),
-                                                                    [&](float** x)
-                                                                    {
-                                                                      std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                      delete[] x;
-                                                                    });
+    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]);
 
     solution s(n_population, max_iters, "WOA");
 
-    std::mt19937 engine(seed);
-    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
-    std::uniform_real_distribution<float> rng(0.f, 1.f);
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -46,10 +38,20 @@ namespace walker
 #endif
 
 #ifdef _OPENMP
-#pragma omp for
-    for (int i = 0; i < n_population; ++i) (positions.get())[i] = new float[dim];
+    std::mt19937 engine(seed + omp_get_thread_num());
 #else
-    std::generate_n(positions.get(), n_population, [](){return new float[dim];});
+    std::mt19937 engine(seed);
+#endif
+
+    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
+    std::uniform_real_distribution<float> rng(0.f, 1.f);
+
+#ifdef _OPENMP
+#pragma omp for
+    for (int i = 0; i < n_population; ++i)
+      positions[i] = std::make_unique<float[]>(dim);
+#else
+    std::generate_n(positions.get(), n_population, [](){return std::make_unique<float[]>(dim);});
 #endif
 
     // initialize the positions/solutions
@@ -58,7 +60,7 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
       for (int j = 0; j < dim; ++j)
-        (positions.get())[i][j] = bound_rng(engine);
+        positions[i][j] = bound_rng(engine);
 
     // main loop
     while(iteration < max_iters)
@@ -71,7 +73,7 @@ namespace walker
       for (int i = 0; i < n_population; ++i)
       {
         // compute objective function for each search agent
-        fitness = objfunc((positions.get())[i]);
+        fitness = objfunc(positions[i].get());
         // update the leader
         leader.first  = fitness < leader.second ? i       : leader.first; // update alpha
         leader.second = fitness < leader.second ? fitness : leader.second;
@@ -97,16 +99,16 @@ namespace walker
 
         for (int j = 0; j < dim; ++j)
         {
-          //(positions.get())[i][j] = (p && a_abs)  ? (positions.get())[/*MISS*/][j] - A * std::fabs(C * (positions.get())[/*MISS*/][j] - (positions.get())[i][j])                         :
-          //                          (p && !a_abs) ? (positions.get())[leader.first][j] - A * std::fabs(C * (positions.get())[leader.first][j] - (positions.get())[i][j]) :
-          //                          std::fabs((positions.get())[leader.first][j] - (positions.get())[i][j]) * std::exp(b * l) * std::cos(l * 2.f * M_PI) + (positions.get())[leader.first][j];
-          (positions.get())[i][j] = ((positions.get())[i][j] < lower_bound) ? lower_bound :
-                                    ((positions.get())[i][j] > upper_bound) ? upper_bound :
-                                     (positions.get())[i][j];
+          //positions[i][j] = (p && a_abs)  ? positions[/*MISS*/][j] - A * std::fabs(C * positions[/*MISS*/][j] - positions[i][j])                         :
+          //                  (p && !a_abs) ? positions[leader.first][j] - A * std::fabs(C * positions[leader.first][j] - positions[i][j]) :
+          //                  std::fabs(positions[leader.first][j] - positions[i][j]) * std::exp(b * l) * std::cos(l * 2.f * M_PI) + positions[leader.first][j];
+          positions[i][j] = (positions[i][j] < lower_bound) ? lower_bound :
+                            (positions[i][j] > upper_bound) ? upper_bound :
+                             positions[i][j];
         }
       }
 
-      s.walk[iteration] = (positions.get())[leader.first];
+      s.walk[iteration] = positions[leader.first];
 
 #ifdef _OPENMP
 #pragma omp single

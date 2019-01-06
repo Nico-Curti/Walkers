@@ -6,21 +6,7 @@ import numpy as np
 import time
 import sys
 from bisect import bisect_left
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
 
 def bbo(objfunc,
         lower_bound,
@@ -29,30 +15,40 @@ def bbo(objfunc,
         n_population,   # Population size
         max_iters,      # Number of generations
         pmutate = 1e-2, #
-        elite = 2        #
+        elite = 2,      #
+        pos = None,     # initial population
+        seed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
-  pos = np.random.uniform(low=lower_bound,
-                          high=upper_bound,
-                          size=(n_population, dim))
+
+  if pos == None:
+    pos = np.random.uniform(low=lower_bound,
+                            high=upper_bound,
+                            size=(n_population, dim))
+
   mut = np.linspace(n_population, 1., n_population) / (n_population + 1)
   lambda1t = (1. - mut).reshape((n_population, 1))
   smu = sum(mut)
   cmu = np.cumsum(mut)
 
   print ("BBO is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "BBO"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "BBO",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   # compute objective function for each particle
   fitness = np.apply_along_axis(objfunc, 1, pos)
-  idx = np.argsort(fitness)
-  pos = pos[idx, :]
+  idx     = np.argsort(fitness)
+  pos     = pos[idx, :]
   fitness = fitness[idx]
 
   # main loop
@@ -86,7 +82,7 @@ def bbo(objfunc,
     pos = new_pos
 
     idx = np.argsort(fitness)
-    pos[idx[-elite:], :] = elite_pos
+    pos[idx[-elite:], :]  = elite_pos
     fitness[idx[-elite:]] = elite_cos
 
     idx = np.argsort(fitness)
@@ -100,12 +96,16 @@ def bbo(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        fitness[0],
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = fitness[0]
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fitness[0]
+  sol.population = pos
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -120,9 +120,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  bbo(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = bbo(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)

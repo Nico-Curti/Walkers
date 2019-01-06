@@ -5,21 +5,7 @@
 import numpy as np
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
 
 def mfo(objfunc,
         lower_bound,
@@ -27,24 +13,34 @@ def mfo(objfunc,
         dim,          # Number of dimensions
         n_population, # Population size
         max_iters,    # Number of generations
-        b = 1.        #
+        b = 1.,       #
+        positions = None,
+        seed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
-  positions = np.random.uniform(low=lower_bound,
-                                high=upper_bound,
-                                size=(dim, n_population))
+
+  if positions == None:
+    positions = np.random.uniform(low=lower_bound,
+                                  high=upper_bound,
+                                  size=(dim, n_population))
+
   at = np.linspace(-1, -2, num=max_iters)
   flames = [np.round(n_population - i*(n_population - 1)/max_iters)
             for i in range(1, max_iters + 1)]
 
   print ("MFO is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "MFO"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "MFO",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   fitness = np.apply_along_axis(objfunc, 0, positions)
 
@@ -73,12 +69,16 @@ def mfo(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        fmin,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = fmin
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fmin
+  sol.population = positions
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -93,9 +93,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  mfo(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = mfo(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)

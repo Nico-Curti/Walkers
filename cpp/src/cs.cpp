@@ -21,8 +21,6 @@ namespace walker
 
     solution s(n_population, max_iters, "CS");
 
-    std::mt19937 engine(seed);
-    std::uniform_real_distribution<float> rng(lower_bound, upper_bound);
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -35,6 +33,14 @@ namespace walker
 #pragma omp parallel num_threads(nth)
   {
 #endif
+
+#ifdef _OPENMP
+    std::mt19937 engine(seed + omp_get_thread_num());
+#else
+    std::mt19937 engine(seed);
+#endif
+
+    std::uniform_real_distribution<float> rng(lower_bound, upper_bound);
 
     // main loop
     while(iteration < max_iters)

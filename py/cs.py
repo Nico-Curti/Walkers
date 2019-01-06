@@ -7,20 +7,7 @@ import numpy as np
 from scipy.special import gamma
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
+from solution import Solution
 
 levy_flight = lambda beta : ( gamma(1. + beta)      * np.sin(np.pi * beta * .5) / \
                              (gamma((1. + beta)*.5) * beta * 2.**( (beta - 1.) * .5)) \
@@ -33,26 +20,34 @@ def cs( objfunc,
         n_population, # Population size
         max_iters,    # Number of generations
         pa = .25,     # discovery rate of alien eggs/solution
-        beta = 1.5
+        beta = 1.5,
+        nest = None,
+        seed = 0
         ):
 
   assert(beta < 2. and beta > 1.)
+
+  np.random.seed(seed)
+
   walk = np.empty(shape=(max_iters,), dtype=float)
   sigma = levy_flight(beta)
   beta_inv = 1. / beta
 
-  # RInitialize nests randomely
-  nest = np.random.uniform(low=lower_bound,
-                           high=upper_bound,
-                           size=(dim, n_population))
+  if nest = None:
+    # RInitialize nests randomely
+    nest = np.random.uniform(low=lower_bound,
+                             high=upper_bound,
+                             size=(dim, n_population))
 
   print ("CS is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "CS"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "CS",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   fitness = np.apply_along_axis(objfunc, 0, nest)
   best = np.argmin(fitness)
@@ -104,12 +99,16 @@ def cs( objfunc,
                      %(t,
                        '=' * int(t / 20),
                        fmin,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = fmin
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fmin
+  sol.population = nest
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -124,9 +123,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  cs(score_func,
-     lower_bound,
-     upper_bound,
-     dim,
-     n_population,
-     max_iters)
+  sol = cs(objfunc = score_func,
+           lower_bound = lower_bound,
+           upper_bound = upper_bound,
+           dim = dim,
+           n_population = n_population,
+           max_iters = max_iters)

@@ -6,29 +6,20 @@
 import numpy as np
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
 
 def gwo(objfunc,
         lower_bound,
         upper_bound,
         dim,          # Number of dimensions
         n_population, # Population size
-        max_iters    # Number of generations
+        max_iters,    # Number of generations
+        positions = None,
+        seed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   alpha_score, beta_score, delta_score = np.inf, np.inf, np.inf
   alpha_pos, beta_pos, delta_pos = np.zeros(shape=(dim, n_population), dtype=float), \
@@ -36,17 +27,21 @@ def gwo(objfunc,
                                    np.zeros(shape=(dim, n_population), dtype=float)
   walk = np.empty(shape=(max_iters,), dtype=float)
 
-  # Initialize the population/solutions
-  positions = np.random.uniform(low=lower_bound,
-                                high=upper_bound,
-                                size=(dim, n_population))
+  if positions == None:
+    # Initialize the population/solutions
+    positions = np.random.uniform(low=lower_bound,
+                                  high=upper_bound,
+                                  size=(dim, n_population))
+
   print ("GWO is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "GWO"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "GWO",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   at = np.linspace(2, 0, num=max_iters)
   # main loop
@@ -98,12 +93,16 @@ def gwo(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        alpha_score,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = alpha_score
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fmin
+  sol.population = positions
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -118,9 +117,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  gwo(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = gwo(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)

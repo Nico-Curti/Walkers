@@ -4,6 +4,7 @@
 #include <iostream>
 #endif
 #include <memory>
+#include <array>
 #include <chrono>
 #include <random>
 #include <climits>

@@ -5,21 +5,7 @@
 import numpy as np
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
 
 def pso(objfunc,
         lower_bound,
@@ -31,13 +17,21 @@ def pso(objfunc,
         wmax = .9,    #
         wmin = .2,    #
         c1   = 2.,    #
-        c2   = 2.     #
+        c2   = 2.,    #
+        pos  = None,
+        seed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
-  pos = np.random.uniform(low=lower_bound,
-                          high=upper_bound,
-                          size=(dim, n_population))
+
+  if pos == None:
+    pos = np.random.uniform(low=lower_bound,
+                            high=upper_bound,
+                            size=(dim, n_population))
+
   vel = np.zeros(shape=(dim, n_population))
   wt = np.linspace(wmax, wmin, num=max_iters)
   p_score = np.repeat(np.inf, repeats=n_population)
@@ -46,12 +40,14 @@ def pso(objfunc,
   g_best  = np.zeros(shape=(1, dim))
 
   print ("PSO is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "PSO"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "PSO",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   # main loop
   for t, w in enumerate(wt):
@@ -83,12 +79,16 @@ def pso(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        g_score,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = g_score
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = g_score
+  sol.population = pos
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -103,9 +103,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  pso(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = pso(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)

@@ -22,19 +22,9 @@ namespace walker
     best.first  = 0;
     float fitness, avg_best, R, V, W;
 
-    std::unique_ptr<float*, std::function<void(float**)>> positions(new float*[n_population](),
-                                                                    [&](float** x)
-                                                                    {
-                                                                      std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                      delete[] x;
-                                                                    });
-    solution s(n_population, max_iters, "CFA");
+    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]);
 
-    std::mt19937 engine(seed);
-    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound),
-                                          rngR(-1.f, 2.f),
-                                          rngV(-1.5f, 1.5f),
-                                          rngW(-1.f, 1.f);
+    solution s(n_population, max_iters, "CFA");
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -50,10 +40,22 @@ namespace walker
 #endif
 
 #ifdef _OPENMP
-#pragma omp for
-    for (int i = 0; i < n_population; ++i) (positions.get())[i] = new float[dim];
+    std::mt19937 engine(seed + omp_get_thread_num());
 #else
-    std::generate_n(positions.get(), n_population, [&](){return new float[dim];});
+    std::mt19937 engine(seed);
+#endif
+
+    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound),
+                                          rngR(-1.f, 2.f),
+                                          rngV(-1.5f, 1.5f),
+                                          rngW(-1.f, 1.f);
+
+#ifdef _OPENMP
+#pragma omp for
+    for (int i = 0; i < n_population; ++i)
+      positions[i] = std::make_unique<float[]>(dim);
+#else
+    std::generate_n(positions.get(), n_population, [&](){return std::make_unique<float[]>(dim);});
 #endif
 
 #ifdef _OPENMP
@@ -61,14 +63,14 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
       for (int j = 0; j < dim; ++j)
-        (positions.get())[i][j] = bound_rng(engine);
+        positions[i][j] = bound_rng(engine);
 
 #ifdef _OPENMP
 #pragma omp for reduction(minPair : best)
 #endif
     for (int i = 0; i < n_population; ++i)
     {
-      fitness = objfunc((positions.get())[i]);
+      fitness = objfunc(positions[i].get());
       // find the initial best solution
       best.first   = fitness < best.second  ? i       : best.first;
       best.second  = fitness < best.second  ? fitness : best.second;
@@ -87,10 +89,11 @@ namespace walker
 #ifdef _OPENMP
       avg_best = 0.f;
 #pragma omp for reduction(+ : avg_best)
-      for (int i = 0; i < dim; ++i) avg_best += (positions.get())[best.first][i];
+      for (int i = 0; i < dim; ++i)
+        avg_best += positions[best.first][i];
 #else
-      avg_best = std::accumulate((positions.get())[best.first],
-                                 (positions.get())[best.first] + dim,
+      avg_best = std::accumulate(positions[best.first].get(),
+                                 positions[best.first].get() + dim,
                                  0.f) / dim;
 #endif
 
@@ -100,10 +103,10 @@ namespace walker
       for (int i = 0; i < m; ++i)
         for (int j = 0; j < dim; ++j)
         {
-          (positions.get())[i      ][j] = R * (positions.get())[i][j] + ((positions.get())[best.first][j] - (positions.get())[i][j]);
-          (positions.get())[i +   m][j] = V * ((positions.get())[best.first][j] - (positions.get())[i + m][j]) + (positions.get())[best.first][j];
-          (positions.get())[i + 2*m][j] = W * ((positions.get())[best.first][j] - avg_best) + (positions.get())[best.first][j];
-          (positions.get())[i + 3*m][j] = bound_rng(engine);
+          positions[i      ][j] = R *  positions[i][j] + (positions[best.first][j] - positions[i][j]);
+          positions[i +   m][j] = V * (positions[best.first][j] - positions[i + m][j]) + positions[best.first][j];
+          positions[i + 2*m][j] = W * (positions[best.first][j] - avg_best) + positions[best.first][j];
+          positions[i + 3*m][j] = bound_rng(engine);
         }
 
 #ifdef _OPENMP
@@ -111,13 +114,13 @@ namespace walker
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        fitness = objfunc((positions.get())[i]);
+        fitness = objfunc(positions[i].get());
         // find the initial best solution
         best.first   = fitness < best.second  ? i       : best.first;
         best.second  = fitness < best.second  ? fitness : best.second;
       }
 
-      s.walk[iteration] = (positions.get())[best.first];
+      s.walk[iteration] = positions[best.first];
 
 #ifdef _OPENMP
 #pragma omp single

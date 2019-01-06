@@ -22,25 +22,12 @@ namespace walker
     int iteration = 0;
     best_idx best;
 
-    std::unique_ptr<float*, std::function<void(float**)>> positions(new float*[n_population](),
-                                                                    [&](float** x)
-                                                                    {
-                                                                      std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                      delete[] x;
-                                                                    }),
-                                                          velocity(new float*[n_population](),
-                                                                   [&](float** x)
-                                                                   {
-                                                                     std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                     delete[] x;
-                                                                   });
+    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]),
+                                                velocity (new std::unique_ptr<float[]>[n_population]);
     std::unique_ptr<float[]> fitness(new float[n_population]);
 
     solution s(n_population, max_iters, "PSO");
 
-    std::mt19937 engine(seed);
-    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
-    std::uniform_real_distribution<float> rng(0.f, 1.f);
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -56,16 +43,25 @@ namespace walker
 #endif
 
 #ifdef _OPENMP
+    std::mt19937 engine(seed + omp_get_thread_num());
+#else
+    std::mt19937 engine(seed);
+#endif
+
+    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
+    std::uniform_real_distribution<float> rng(0.f, 1.f);
+
+#ifdef _OPENMP
 #pragma omp for
     for (int i = 0; i < n_population; ++i)
     {
-      (positions.get()) = new float[dim];
-      (velocity.get())  = new float[dim];
-      fitness[i]        = inf;
+      positions[i] = std::make_unique<float[]>(dim);
+      velocity[i]  = std::make_unique<float[]>(dim);
+      fitness[i]   = inf;
     }
 #else
-    std::generate_n(positions.get(), n_population, [&](){return new float[dim];});
-    std::generate_n(velocity.get(),  n_population, [&](){return new float[dim];});
+    std::generate_n(positions.get(), n_population, [&](){return std::make_unique<float[]>(dim);});
+    std::generate_n(velocity.get(),  n_population, [&](){return std::make_unique<float[]>(dim);});
     std::fill_n(fitness.get(), n_population, inf);
 #endif
 
@@ -76,8 +72,8 @@ namespace walker
     for (int i = 0; i < n_population; ++i)
       for (int j = 0; j < dim; ++j)
       {
-        (positions.get())[i][j] = bound_rng(engine);
-        (velocity.get())[i][j]  = 0.f;
+        positions[i][j] = bound_rng(engine);
+        velocity[i][j]  = 0.f;
       }
 
     // main loop
@@ -91,7 +87,7 @@ namespace walker
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        float f = objfunc((positions.get())[i]);
+        float f = objfunc(positions[i].get());
         // find the initial best solution
         best.first   = f < best.second  ? i : best.first;
         best.second  = f < best.second  ? f : best.second;
@@ -99,7 +95,7 @@ namespace walker
         fitness[i]   = f < fitness[i]   ? f : fitness[i];
       }
 
-      s.walk[iteration] = (positions.get())[best.first];
+      s.walk[iteration] = positions[best.first];
 
 #ifdef _OPENMP
 #pragma omp single

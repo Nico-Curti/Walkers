@@ -7,21 +7,8 @@
 import numpy as np
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
+from scipy.spatial.distance import pdist, squareform
 
 def gsa(objfunc,
         lower_bound,
@@ -32,13 +19,21 @@ def gsa(objfunc,
         elitist = 1., #
         rpower = 1.,  #
         alpha = 20.,  #
-        G0 = 100      #
+        G0 = 100,     #
+        pos = None,
+        seed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
-  pos = np.random.uniform(low=lower_bound,
-                          high=upper_bound,
-                          size=(n_population, dim))
+  vel  = np.zeros(shape=(n_population, dim), dtype=float)
+
+  if pos == None:
+    pos = np.random.uniform(low=lower_bound,
+                            high=upper_bound,
+                            size=(n_population, dim))
   # Calculating Gravitational Constant
   Gt = G0 * np.exp(-alpha * np.arange(0, max_iters) / max_iters)
 
@@ -46,38 +41,44 @@ def gsa(objfunc,
   else:             kbest = np.repeat(n_population, repeats=max_iters)
 
   print ("GSA is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "GSA"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
 
-  fitness = np.apply_along_axis(objfunc, 1, positions)
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "GSA",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
+
+  fitness = np.apply_along_axis(objfunc, 1, pos)
   fmax = max(fitness)
   fmin = min(fitness)
   epsil = np.finfo(float).eps
+
   for (t, G), k in zip(enumerate(Gt), kbest):
-    positions = np.clip(positions, lower_bound, upper_bound)
+    pos = np.clip(pos, lower_bound, upper_bound)
 
     # Calculating Mass
     if fmax == fmin: M = np.ones(shape=(n_population,))
     else:            M = (fitness - fmax) / (fmin - fmax)
     M /= sum(M)
 
-    # Calculating Gfield
-    ds = np.argsort(M)[:kbest]
+    ## Calculating Gfield
+    ds = np.argsort(M)[::-1]
+    distance = squareform(pdist(pos[ds, :], metric="euclidean"))
+    force = np.zeros(shape=(n_population, dim), dtype=float)
+    for z in ds[:k]:
+      R = np.array(distance[:, z], ndmin=2).T
+      force += np.random.uniform(low=0., high=1., size=(n_population, dim)) * \
+               M[z] * (pos[z, :] - pos) / (R**rpower + epsil)
 
-    # miss
-    force += np.random.uniform(low=0., high=1., size=(n_population, dim)) * \
-             M[ds] * ( (pos[ds, :] - pos) / (R**rpower + epsil))
     acc = force * G
 
     # Calculating Position
     vel  = np.random.uniform(low=0., high=1., size=(n_population, dim)) * vel + acc
     pos += vel
 
-    fitness = np.apply_along_axis(objfunc, 1, positions)
+    fitness = np.apply_along_axis(objfunc, 1, pos)
     fmax = max(fitness)
     fmin = min(fitness)
     # Update convergence curve
@@ -88,12 +89,16 @@ def gsa(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        fmin,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = fmin
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fmin
+  sol.population = pos
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -108,11 +113,11 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  gsa(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = gsa(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)
 
 

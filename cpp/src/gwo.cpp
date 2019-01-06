@@ -22,19 +22,10 @@ namespace walker
           a, fitness;
     best_idx best;
 
-    std::unique_ptr<float*, std::function<void(float**)>> positions(new float*[n_population](),
-                                                                    [&](float** x)
-                                                                    {
-                                                                      std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                      delete[] x;
-                                                                    });
+    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]);
     std::array<float, 3> r1, r2;
 
     solution s(n_population, dim, max_iters, "GWO");
-
-    std::mt19937 engine(seed);
-    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
-    std::uniform_real_distribution<float> rng(0.f, 1.f);
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -50,10 +41,19 @@ namespace walker
 #endif
 
 #ifdef _OPENMP
-#pragma omp for
-    for (int i = 0; i < n_population; ++i) (positions.get())[i] = new float[dim];
+    std::mt19937 engine(seed + omp_get_thread_num());
 #else
-    std::generate_n(positions.get(), n_population, [&](){return new float[dim];});
+    std::mt19937 engine(seed);
+#endif
+
+    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
+    std::uniform_real_distribution<float> rng(0.f, 1.f);
+
+#ifdef _OPENMP
+#pragma omp for
+    for (int i = 0; i < n_population; ++i) positions[i] = std::make_unique<float[]>(dim);
+#else
+    std::generate_n(positions.get(), n_population, [&](){return std::make_unique<float[]>(dim);});
 #endif
 
     // initialize the positions/solutions
@@ -62,7 +62,7 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
       for (int j = 0; j < dim; ++j)
-        (positions.get())[i][j] = bound_rng(engine);
+        positions[i][j] = bound_rng(engine);
 
     // main loop
     while(iteration < max_iters)
@@ -75,7 +75,7 @@ namespace walker
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        fitness = objfunc((positions.get())[i]);
+        fitness = objfunc(positions[i].get());
         // find the initial best solution
         best.first   = fitness < best.second  ? i       : best.first;
         best.second  = fitness < best.second  ? fitness : best.second;
@@ -105,19 +105,19 @@ namespace walker
           r2[1] = rng(engine);
           r2[2] = rng(engine);
           (positions.get())[i][j] = (
-                              ((positions.get())[alpha_pos][j] - std::fabs(2.f * r2[i*3]     * (positions.get())[alpha_pos][j] - (positions.get())[i][j]) * 2.f * a * r1[i*3] - a)
+                              (positions[alpha_pos][j] - std::fabs(2.f * r2[i*3]     * positions[alpha_pos][j] - positions[i][j]) * 2.f * a * r1[i*3] - a)
                               +
-                              ((positions.get())[beta_pos][j]  - std::fabs(2.f * r2[i*3 + 1] * (positions.get())[beta_pos][j]  - (positions.get())[i][j]) * 2.f * a * r1[i*3 + 1] - a)
+                              (positions[beta_pos][j]  - std::fabs(2.f * r2[i*3 + 1] * positions[beta_pos][j]  - positions[i][j]) * 2.f * a * r1[i*3 + 1] - a)
                               +
-                              ((positions.get())[delta_pos][j] - std::fabs(2.f * r2[i*3 + 2] * (positions.get())[delta_pos][j] - (positions.get())[i][j]) * 2.f * a * r1[i*3 + 2] - a)
+                              (positions[delta_pos][j] - std::fabs(2.f * r2[i*3 + 2] * positions[delta_pos][j] - positions[i][j]) * 2.f * a * r1[i*3 + 2] - a)
                             ) * .333333333f;
           // clip
-          (positions.get())[i][j] = ((positions.get())[i][j] < lower_bound) ? lower_bound :
-                                    ((positions.get())[i][j] > upper_bound) ? upper_bound :
-                                     (positions.get())[i][j];
+          (positions.get())[i][j] = (positions[i][j] < lower_bound) ? lower_bound :
+                                    (positions[i][j] > upper_bound) ? upper_bound :
+                                     positions[i][j];
         }
 
-      s.walk[iteration] = (positions.get())[alpha_pos];
+      s.walk[iteration] = positions[alpha_pos];
 
       // miss progress bar
 

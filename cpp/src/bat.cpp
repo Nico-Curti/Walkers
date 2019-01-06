@@ -14,45 +14,26 @@ namespace walker
            float Qmin = 0.f,         // Frequency minimum
            float Qmax = 2.f,         // Frequency maximum
            float step = 1e-3f,       // scale of normal random generator
-           std::size_t seed = 0,
+           std::size_t seed = 123,
            int verbose = 1,
            int nth = 4
            )
   {
+    using res_t = typename std::result_of<Func(const float *)>::type; // since c++17
+    static_assert(std::is_floating_point<res_t>::value, "Invalid type function");
+
     typedef std::pair<int, float> best_idx;
     int iteration = 0;
     best_idx best;
 
-    std::unique_ptr<float*, std::function<void(float**)>> Sol(new float*[n_population](),
-                                                              [&](float** x)
-                                                              {
-                                                                std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                delete[] x;
-                                                              }),
-                                                          S(new float*[n_population](),
-                                                            [&](float** x)
-                                                            {
-                                                              std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                              delete[] x;
-                                                            }),
-                                                          vel(new float*[n_population](),
-                                                              [&](float** x)
-                                                              {
-                                                                std::for_each(x, x + dim, std::default_delete<float[]>());
-                                                                delete[] x;
-                                                              });
-
-    std::unique_ptr<float[]> Q(new float[n_population]), // frequency
+    std::unique_ptr<std::unique_ptr<float[]>[]> S  (new std::unique_ptr<float[]>[n_population]),
+                                                Sol(new std::unique_ptr<float[]>[n_population]),
+                                                v  (new std::unique_ptr<float[]>[n_population]);
+    std::unique_ptr<float[]> rngt   (new float[n_population]),
                              fitness(new float[n_population]),
-                             new_fit(new float[n_population]),
-                             rng1(new float[n_population]);
+                             new_fit(new float[n_population]);
 
     solution s(n_population, dim, max_iters, "BAT");
-
-    std::mt19937 engine(seed);
-    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
-    std::uniform_real_distribution<float> rng(0.f, 1.f);
-    std::normal_distribution<float> normal(0.f, 1.f); // WRONG
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -66,32 +47,89 @@ namespace walker
 #pragma omp parallel num_threads(nth)
   {
 #endif
+#ifdef _OPENMP
+    std::mt19937 engine(seed + omp_get_thread_num());
+#else
+    std::mt19937 engine(seed);
+#endif
 
-    // initialize the Sol/solutions
+    std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
+    std::uniform_real_distribution<float> Qbox(Qmin, Qmax);
+    std::uniform_real_distribution<float> rng(0.f, 1.f);
+    std::normal_distribution<float> normal(0.f, 1.f);
+
 #ifdef _OPENMP
 #pragma omp for
+#endif
     for (int i = 0; i < n_population; ++i)
     {
-      (Sol.get())[i] = new float[dim];
-      (S.get())[i]   = new float[dim];
-      (vel.get())[i] = new float[dim];
+      S[i]   = std::make_unique<float[]>(dim);
+      Sol[i] = std::make_unique<float[]>(dim);
+      v[i]   = std::make_unique<float[]>(dim);
     }
-#else
-    std::generate_n(Sol.get(), n_population, [&](){return new float[dim];});
-    std::generate_n(S.get(),   n_population, [&](){return new float[dim];});
-    std::generate_n(vel.get(), n_population, [&](){return new float[dim];});
+
+    // initialize
+#ifdef _OPENMP
+#pragma omp for collapse(2)
 #endif
+    for (int i = 0; i < n_population; ++i)
+      for (int j = 0; j < dim; ++j)
+      {
+        v[i][j]   = 0.f;
+        Sol[i][j] = bound_rng(engine);
+      }
+
+    best.second = inf;
+    best.first  = 0;
+
+#ifdef _OPENMP
+#pragma omp for reduction(minPair : best)
+#endif
+    for (int i = 0; i < n_population; ++i)
+    {
+      fitness[i] = objfunc(Sol[i].get());
+      // find the initial best solution
+      best.first  = fitness[i] < best.second ? i          : best.first;
+      best.second = fitness[i] < best.second ? fitness[i] : best.second;
+    }
 
 #ifdef _OPENMP
 #pragma omp for collapse(2)
+#endif
     for (int i = 0; i < n_population; ++i)
       for (int j = 0; j < dim; ++j)
-        (vel.get())[i][j] = 0.f;
-#else
-    for (int i = 0; i < n_population; ++i)
-      std::fill_n((vel.get())[i], dim, 0.f);
-#endif
+      {
+        v[i][j] += Qbox(engine) * (Sol[i][j] - Sol[best.first][j]);
+        S[i][j]  = Sol[i][j] + v[i][j];
+        // pulse rate
+        S[i][j]  = (rngt[i] > r) ? Sol[best.first][j] + step * normal(engine) : S[i][j];
+      }
 
+    while (true)
+    {
+      // Evaluate new solutions
+#ifdef _OPENMP
+#pragma omp for
+#endif
+      for (int i = 0; i < n_population; ++i)
+      {
+        new_fit[i] = objfunc(S[i].get());
+        rngt[i]    = rng(engine);
+      }
+
+      // Update if the solution improves
+#ifdef _OPENMP
+#pragma omp for collapse(2)
+#endif
+      for (int i = 0; i < n_population; ++i)
+        for (int j = 0; j < dim; ++j)
+        {
+          // troubles with random (same also in next loop!)
+          Sol[i][j]  = (new_fit[i] <= fitness[i] && rngt[i] < A) ? S[i][j]     :  Sol[i][j];
+          Sol[i][j]  = (Sol[i][j]  < lower_bound)                ? lower_bound : (Sol[i][j] > upper_bound) ? upper_bound : Sol[i][j];
+        }
+
+    // Update the current best solution
     best.second = inf;
     best.first  = 0;
 #ifdef _OPENMP
@@ -99,67 +137,42 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
     {
-      fitness[i] = objfunc((Sol.get())[i]);
-      // find the initial best solution
+      fitness[i] = (new_fit[i] <= fitness[i] && rngt[i] < A) ? new_fit[i] : fitness[i];
+      // find the new best solution
       best.first  = fitness[i] < best.second ? i          : best.first;
       best.second = fitness[i] < best.second ? fitness[i] : best.second;
+
+      rngt[i]    = rng(engine);
     }
 
-    // main loop
-    while(iteration < max_iters)
-    {
-      best.second = inf;
-      best.first  = 0;
-      // loop over all bats (solutions)
-#ifdef _OPENMP
-#pragma omp for
-      for (int i = 0; i < n_population; ++i)
-      {
-        Q[i] = Qmin + (Qmin - Qmax) * rng(engine);
-        rng1[i] = rng(engine);
-      }
-#else
-      std::generate_n(Q.get(), n_population, [&](){return Qmin + (Qmin - Qmax) * rng(engine);});
-      std::generate_n(rng1.get(), n_population, [&](){return rng(engine);});
-#endif
-
-#ifdef _OPENMP
-#pragma omp for collapse(2)
-#endif
-      for (int i = 0; i < n_population; ++i)
-        for (int j = 0; j < dim; ++j)
-        {
-          (vel.get())[i][j] += Q[i] * ((Sol.get())[i][j] - (Sol.get())[best.first][j]);
-          (S.get())[i][j] = rng1[i] > r ? (Sol.get())[best.first][j] + 1e-3f * normal(engine) : (Sol.get())[i][j] + (vel.get())[i][j];
-        }
-
-#ifdef _OPENMP
-#pragma omp for reduction(minPair : best)
-#endif
-      for (int i = 0; i < n_population; ++i)
-      {
-        float f = objfunc((S.get())[i]);
-        float r = rng(engine);
-        fitness[i] = (f <= fitness[i] && r < A) ? f : fitness[i];
-
-        std::copy_n((S.get())[i], dim, (Sol.get())[i]);
-
-        best.first  = fitness[i] < best.second ? i          : best.first;
-        best.second = fitness[i] < best.second ? fitness[i] : best.second;
-      }
-
-      s.walk[iteration] = (Sol.get())[best.first];
+    s.walk[iteration] = Sol[best.first];
 
 #ifdef _OPENMP
 #pragma omp single
 #endif
       ++iteration;
-    } // end while
+
+    if (iteration >= max_iters) break;
+
+    // Loop over all bats(solutions)
+#ifdef _OPENMP
+#pragma omp for collapse(2)
+#endif
+    for (int i = 0; i < n_population; ++i)
+      for (int j = 0; j < dim; ++j)
+      {
+        v[i][j] += Qbox(engine) * (Sol[i][j] - S[best.first][j]);
+        S[i][j]  = Sol[i][j] + v[i][j];
+        // pulse rate
+        S[i][j]  = (rngt[i] > r) ? S[best.first][j] + step * normal(engine) : S[i][j];
+      }
+
+    }
+
 
 #ifdef _OPENMP
   } // end parallel section
 #endif
-
 
     auto end_time = std::chrono::high_resolution_clock::now();
     s.execution_time = std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time).count();

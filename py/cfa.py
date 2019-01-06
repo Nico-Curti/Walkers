@@ -5,34 +5,27 @@
 import numpy as np
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
 
 def cfa(objfunc,
         lower_bound,
         upper_bound,
         dim,          # Number of dimensions
         n_population, # Population size
-        max_iters    # Number of generations
+        max_iters,    # Number of generations
+        pos = None,
+        seed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
-  pos = np.random.uniform(low=lower_bound,
-                          high=upper_bound,
-                          size=(n_population, dim))
+
+  if pos == None:
+    pos = np.random.uniform(low=lower_bound,
+                            high=upper_bound,
+                            size=(n_population, dim))
 
   m = n_population // 4
   g21 = m + 1
@@ -42,12 +35,14 @@ def cfa(objfunc,
   g41 = g32 + 1
 
   print ("CFA is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "CFA"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "CFA",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   fitness = np.apply_along_axis(objfunc, 1, pos)
   best = np.argmin(fitness)
@@ -81,12 +76,16 @@ def cfa(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        fmin,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = fmin
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fmin
+  sol.population = pos
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -101,10 +100,10 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  cfa(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = cfa(objfunc =score_func,
+            lower_bound =lower_bound,
+            upper_bound =upper_bound,
+            dim =dim,
+            n_population =n_population,
+            max_iters =max_iters)
 

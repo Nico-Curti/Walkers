@@ -7,20 +7,7 @@ import numpy as np
 from scipy.spatial.distance import squareform, pdist
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
+from solution import Solution
 
 new_alpha = lambda alpha, max_iters : (1e-4/.9)**(1. / max_iters) * alpha
 
@@ -33,22 +20,30 @@ def ffa( objfunc,
         alpha = .5,   # Randomness 0--1 (highly random)
         betamin = .2, # minimum value of beta
         beta0 = 1.,   #
-        gamma = 1.    # Absorption coefficient
+        gamma = 1.,   # Absorption coefficient
+        ns = None,
+        ssed = 0
         ):
-  ns = np.random.uniform(low=lower_bound,
-                         high=upper_bound,
-                         size=(n_population, dim))
+
+  np.random.seed(seed)
+
+  if ns == None:
+    ns = np.random.uniform(low=lower_bound,
+                           high=upper_bound,
+                           size=(n_population, dim))
+
   walk = np.empty(shape=(max_iters,), dtype=float)
   domain = abs(upper_bound - lower_bound)
 
   print ("FFA is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"] = "FFA"
-  solution["dimension"] = dim,
-  solution["population"] = n_population
-  solution["max_iters"] = max_iters
-  solution["objfname"] = objfunc.__name__
-  timer = time.time()
-  solution["start_time"] = timer
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "FFA",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   # main loop
   for t in range(max_iters):
@@ -78,12 +73,16 @@ def ffa( objfunc,
                      %(t,
                        '=' * int(t / 20),
                        fmin,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"] = walk
-  solution["best"] = fmin
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fmin
+  sol.population = ns
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -98,9 +97,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  ffa(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = ffa(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)

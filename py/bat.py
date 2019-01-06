@@ -7,21 +7,7 @@
 import numpy as np
 import time
 import sys
-
-np.random.seed(123)
-
-solution = {"best" : 0.,
-            "walk" : [],
-            "optimizer" : "",
-            "objfname"  : "",
-            "start_time" : 0.,
-            "end_time"   : 0.,
-            "execution_time" : 0.,
-            "dimension" : 0.,
-            "population" : 0.,
-            "max_iters" : 0.
-        }
-
+from solution import Solution
 
 def bat(objfunc,
         lower_bound,
@@ -33,24 +19,33 @@ def bat(objfunc,
         r = .5,       # Pulse rate (constant or decreasing)
         Qmin = 0.,    # Frequency minimum
         Qmax = 2.,    # Frequency maximum
-        step = 1e-3   # scale of normal random generator
+        step = 1e-3,  # scale of normal random generator
+        Sol = None,
+        ssed = 0
         ):
+
+  np.random.seed(seed)
+
   # Initializing arrays
   Qt = np.random.uniform(low=Qmin, high=Qmax, size=(max_iters, n_population))
   v  = np.zeros(shape=(dim, n_population), dtype=float) # velocities
   walk = np.empty(shape=(max_iters,), dtype=float)
 
-  # Initialize the population/solutions
-  Sol = np.random.uniform(low=lower_bound,
-                          high=upper_bound,
-                          size=(dim, n_population))
+  if Sol == None:
+    # Initialize the population/solutions
+    Sol = np.random.uniform(low=lower_bound,
+                            high=upper_bound,
+                            size=(dim, n_population))
+
   print ("BAT is optimizing \"" + objfunc.__name__ + "\"")
-  solution["optimizer"]  = "BAT"
-  solution["dimension"]  = dim,
-  solution["population"] = n_population
-  solution["max_iters"]  = max_iters
-  solution["objfname"]   = objfunc.__name__
-  solution["start_time"] = time.time()
+
+  sol = Solution(dim          = dim,
+                 n_population = n_population,
+                 max_iters    = max_iters,
+                 optimizer    = "BAT",
+                 objfname     = objfunc.__name__,
+                 start_time   = time.time()
+                 )
 
   fitness = np.apply_along_axis(objfunc, 0, Sol)
   best = np.argmin(fitness)
@@ -83,11 +78,10 @@ def bat(objfunc,
     # check boundaries
     Sol = np.clip(Sol, lower_bound, upper_bound)
 
-    tmp_best = np.argmin(fit_new)
+    best = np.argmin(fitness)
     # Update the current best solution
-    if fit_new[tmp_best] <= fmin:
-      fmin = fit_new[tmp_best]
-      best = np.array(S[:, tmp_best], ndmin=2)
+    fmin = fitness[best]
+    best = np.array(S[:, best], ndmin=2)
     # Update convergence curve
     walk[t] = fmin
 
@@ -96,12 +90,16 @@ def bat(objfunc,
                      %(t,
                        '=' * int(t / 20),
                        fmin,
-                       time.time() - solution["start_time"]))
+                       time.time() - sol.start_time))
   sys.stdout.write('\n')
-  solution["end_time"] = time.time()
-  solution["run_time"] = solution["end_time"] - solution["start_time"]
-  solution["walk"]     = walk
-  solution["best"]     = fmin
+
+  sol.end_time   = time.time()
+  sol.run_time   = sol.end_time - sol.start_time
+  sol.walk       = walk
+  sol.best       = fmin
+  sol.population = Sol
+
+  return sol
 
 
 if __name__ == "__main__":
@@ -116,9 +114,9 @@ if __name__ == "__main__":
   upper_bound = 32
   dim = 30
 
-  bat(score_func,
-      lower_bound,
-      upper_bound,
-      dim,
-      n_population,
-      max_iters)
+  sol = bat(objfunc = score_func,
+            lower_bound = lower_bound,
+            upper_bound = upper_bound,
+            dim = dim,
+            n_population = n_population,
+            max_iters = max_iters)
