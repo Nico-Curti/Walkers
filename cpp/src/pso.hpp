@@ -3,30 +3,30 @@
 namespace walker
 {
   template<typename Func>
-  auto pso(Func objfunc,
-           const float &lower_bound,
-           const float &upper_bound,
-           const int &dim,
-           const int &n_population,
-           const int &max_iters,
-           float Vmax = 6.f,
-           float wmax = .9f,
-           float wmin = .2f,
-           float c1   = 2.f,
-           float c2   = 2.f,
-           std::size_t seed = 0,
-           int verbose = 1,
-           int nth = 4)
+  Solution pso(Func objfunc,
+               const float &lower_bound,
+               const float &upper_bound,
+               const int &dim,
+               const int &n_population,
+               const int &max_iters,
+               float Vmax = 6.f,
+               float wmax = .9f,
+               float wmin = .2f,
+               float c1 = 2.f,
+               float c2 = 2.f,
+               std::size_t seed = 0,
+               int verbose = 1,
+               int nth = 4)
   {
     typedef std::pair<int, float> best_idx;
     int iteration = 0;
     best_idx best;
 
-    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]),
-                                                velocity (new std::unique_ptr<float[]>[n_population]);
+    std::shared_ptr<std::shared_ptr<float[]>[]> positions(new std::shared_ptr<float[]>[n_population]);
+    std::unique_ptr<std::unique_ptr<float[]>[]> velocity (new std::unique_ptr<float[]>[n_population]);
     std::unique_ptr<float[]> fitness(new float[n_population]);
 
-    solution s(n_population, max_iters, "PSO");
+    Solution s(n_population, max_iters, "PSO");
 
 
     // Initialize timer for the experiment
@@ -87,7 +87,7 @@ namespace walker
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        float f = objfunc(positions[i].get());
+        float f = objfunc(positions[i].get(), dim);
         // find the initial best solution
         best.first   = f < best.second  ? i : best.first;
         best.second  = f < best.second  ? f : best.second;
@@ -113,6 +113,4 @@ namespace walker
 
     return s;
   }
-
 }
-

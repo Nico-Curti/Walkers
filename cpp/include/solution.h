@@ -2,33 +2,27 @@
 #define SOLUTION_H
 #include <memory>
 
-struct solution
+struct Solution
 {
-  int dim               = 0;
-  int popsize           = 0;
-  int maxiters          = 0;
-  float best            = 0.f;
-  float execution_time  = 0.f;
-  float **walk          = nullptr;
-  std::string optimizer = "";
+  int dim;
+  int popsize;
+  int maxiters;
+  float best;
+  float execution_time;
+  std::shared_ptr<std::shared_ptr<float[]>[]> walk;
+  std::string optimizer;
 
-  solution(const int &popsize, const int &dim, const int &iters, const std::string &opt)
+  Solution() : dim(0), popsize(0), maxiters(0), best(0.f), execution_time(0.f), walk(nullptr), optimizer("")
+  {};
+  Solution(const int &popsize, const int &dim, const int &iters, const std::string &opt)
   {
     this->dim       = dim;
     this->popsize   = popsize;
     this->maxiters  = iters;
     this->optimizer = opt;
-    this->walk = new float*[iters];
-    //std::generate_n(this->walk, iters, [](){return new float[dim];})
+    this->walk.reset( new std::shared_ptr<float[]>[iters] );
   };
-  ~solution()
-  {
-    if (walk)
-    {
-      for (int i = 0; i < this->maxiters; ++i) delete[] this->walk[i];
-      delete[] this->walk;
-    }
-  }
+  ~Solution() = default;
 };
 
 #endif // SOLUTION_H

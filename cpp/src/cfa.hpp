@@ -3,15 +3,15 @@
 namespace walker
 {
   template<typename Func>
-  auto cfa(Func objfunc,
-           const float &lower_bound,
-           const float &upper_bound,
-           const int &dim,
-           const int &n_population,
-           const int &max_iters,
-           std::size_t seed = 0,
-           int verbose = 1,
-           int nth = 4)
+  Solution cfa(Func objfunc,
+               const float &lower_bound,
+               const float &upper_bound,
+               const int &dim,
+               const int &n_population,
+               const int &max_iters,
+               std::size_t seed = 0,
+               int verbose = 1,
+               int nth = 4)
   {
     typedef std::pair<int, float> best_idx;
     int iteration = 0,
@@ -22,9 +22,9 @@ namespace walker
     best.first  = 0;
     float fitness, avg_best, R, V, W;
 
-    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]);
+    std::shared_ptr<std::shared_ptr<float[]>[]> positions(new std::shared_ptr<float[]>[n_population]);
 
-    solution s(n_population, max_iters, "CFA");
+    Solution s(n_population, max_iters, "CFA");
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -70,7 +70,7 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
     {
-      fitness = objfunc(positions[i].get());
+      fitness = objfunc(positions[i].get(), dim);
       // find the initial best solution
       best.first   = fitness < best.second  ? i       : best.first;
       best.second  = fitness < best.second  ? fitness : best.second;
@@ -114,7 +114,7 @@ namespace walker
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        fitness = objfunc(positions[i].get());
+        fitness = objfunc(positions[i].get(), dim);
         // find the initial best solution
         best.first   = fitness < best.second  ? i       : best.first;
         best.second  = fitness < best.second  ? fitness : best.second;
@@ -138,6 +138,4 @@ namespace walker
 
     return s;
   }
-
 }
-

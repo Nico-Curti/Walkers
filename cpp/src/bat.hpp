@@ -3,37 +3,37 @@
 namespace walker
 {
   template<typename Func>
-  auto bat(Func objfunc,
-           const float &lower_bound,
-           const float &upper_bound,
-           const int &dim,
-           const int &n_population,
-           const int &max_iters,
-           float A = .5f,            // Loudness   (constant or decreasing)
-           float r = .5f,            // Pulse rate (constant or decreasing)
-           float Qmin = 0.f,         // Frequency minimum
-           float Qmax = 2.f,         // Frequency maximum
-           float step = 1e-3f,       // scale of normal random generator
-           std::size_t seed = 123,
-           int verbose = 1,
-           int nth = 4
-           )
+  Solution bat(Func objfunc,
+               const float &lower_bound,
+               const float &upper_bound,
+               const int &dim,
+               const int &n_population,
+               const int &max_iters,
+               float A = .5f,             // Loudness   (constant or decreasing)
+               float r = .5f,             // Pulse rate (constant or decreasing)
+               float Qmin = 0.f,          // Frequency minimum
+               float Qmax = 2.f,          // Frequency maximum
+               float step = 1e-3f,        // scale of normal random generator
+               std::size_t seed = 0,
+               int verbose = 1,
+               int nth = 4
+               )
   {
-    using res_t = typename std::result_of<Func(const float *)>::type; // since c++17
-    static_assert(std::is_floating_point<res_t>::value, "Invalid type function");
+    //using res_t = typename std::result_of<Func(const float *)>::type; // since c++17
+    //static_assert(std::is_floating_point<res_t>::value, "Invalid type function");
 
     typedef std::pair<int, float> best_idx;
     int iteration = 0;
     best_idx best;
 
     std::unique_ptr<std::unique_ptr<float[]>[]> S  (new std::unique_ptr<float[]>[n_population]),
-                                                Sol(new std::unique_ptr<float[]>[n_population]),
                                                 v  (new std::unique_ptr<float[]>[n_population]);
+    std::shared_ptr<std::shared_ptr<float[]>[]> Sol(new std::shared_ptr<float[]>[n_population]);
     std::unique_ptr<float[]> rngt   (new float[n_population]),
                              fitness(new float[n_population]),
                              new_fit(new float[n_population]);
 
-    solution s(n_population, dim, max_iters, "BAT");
+    Solution s(n_population, dim, max_iters, "BAT");
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -87,7 +87,7 @@ namespace walker
 #endif
     for (int i = 0; i < n_population; ++i)
     {
-      fitness[i] = objfunc(Sol[i].get());
+      fitness[i] = objfunc(Sol[i].get(), dim);
       // find the initial best solution
       best.first  = fitness[i] < best.second ? i          : best.first;
       best.second = fitness[i] < best.second ? fitness[i] : best.second;
@@ -113,7 +113,7 @@ namespace walker
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        new_fit[i] = objfunc(S[i].get());
+        new_fit[i] = objfunc(S[i].get(), dim);
         rngt[i]    = rng(engine);
       }
 
@@ -181,4 +181,3 @@ namespace walker
     return s;
   }
 }
-

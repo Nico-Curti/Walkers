@@ -3,25 +3,25 @@
 namespace walker
 {
   template<typename Func>
-  auto woa(Func objfunc,
-           const float &lower_bound,
-           const float &upper_bound,
-           const int &dim,
-           const int &n_population,
-           const int &max_iters,
-           float b = 1.f,
-           std::size_t seed = 0,
-           int verbose = 1,
-           int nth = 4)
+  Solution woa(Func objfunc,
+               const float &lower_bound,
+               const float &upper_bound,
+               const int &dim,
+               const int &n_population,
+               const int &max_iters,
+               float b = 1.f,
+               std::size_t seed = 0,
+               int verbose = 1,
+               int nth = 4)
   {
     typedef std::pair<int, float> best_idx;
     int iteration = 0;
     best_idx leader;
     float fitness;
 
-    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]);
+    std::shared_ptr<std::shared_ptr<float[]>[]> positions(new std::shared_ptr<float[]>[n_population]);
 
-    solution s(n_population, max_iters, "WOA");
+    Solution s(n_population, max_iters, "WOA");
 
 
     // Initialize timer for the experiment
@@ -51,7 +51,7 @@ namespace walker
     for (int i = 0; i < n_population; ++i)
       positions[i] = std::make_unique<float[]>(dim);
 #else
-    std::generate_n(positions.get(), n_population, [](){return std::make_unique<float[]>(dim);});
+    std::generate_n(positions.get(), n_population, [&](){return std::make_unique<float[]>(dim);});
 #endif
 
     // initialize the positions/solutions
@@ -73,7 +73,7 @@ namespace walker
       for (int i = 0; i < n_population; ++i)
       {
         // compute objective function for each search agent
-        fitness = objfunc(positions[i].get());
+        fitness = objfunc(positions[i].get(), dim);
         // update the leader
         leader.first  = fitness < leader.second ? i       : leader.first; // update alpha
         leader.second = fitness < leader.second ? fitness : leader.second;
@@ -126,6 +126,4 @@ namespace walker
 
     return s;
   }
-
 }
-

@@ -71,18 +71,20 @@ find_package(GLUT REQUIRED)
 #                         SETTING DIRECTORIES                   #
 #################################################################
 
-set(SRC_DIR    ./cpp/src)
+set(HPP_DIR    ./cpp/src)
 set(INC_DIR    ./cpp/include)
 set(EXAMPLE    ./example)
+set(OUT_DIR    ./bin)
 
 set(walklib walker)
 
-file(GLOB SRC    "${SRC_DIR}/*.cpp")
+file(GLOB HPP    "${HPP_DIR}/*.hpp")
 file(GLOB HEADER "${INC_DIR}/*.h"  )
 file(GLOB EXE    "${EXAMPLE}/*.cpp")
-file(GLOB VIEWER "${SRC_DIR}/viewer/*.cpp")
+file(GLOB VIEWER "${HPP_DIR}/viewer/*.cpp")
 
 include_directories(${INC_DIR})
+include_directories(${HPP_DIR})
 include_directories(${INC_DIR}/viewer)
 
 #################################################################
@@ -114,17 +116,18 @@ message(STATUS ""                                                               
 #                         MAIN RULES                            #
 #################################################################
 
-add_library(${walklib} SHARED ${SRC} ${HEADER})
+add_library(${walklib} SHARED ${HPP} ${HEADER} ${VIEWER})
 set_property(TARGET ${walklib} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${walklib} ${linked_libs})
 
-add_custom_target(viewer)
-add_executable(run ${EXAMPLE}/run.cpp ${VIEWER})
-target_link_libraries(run ${linked_libs} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLUT_LIBRARIES})
+add_custom_target(test)
+add_executable(run ${EXAMPLE}/run.cpp ${HPP})
+target_link_libraries(run ${linked_libs} ${walklib} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLUT_LIBRARIES})
+add_dependencies(test run)
 
 #################################################################
 #                          INSTALLERS                           #
 #################################################################
 
 install(TARGETS ${walklib}     DESTINATION ${CMAKE_SOURCE_DIR})
-install(TARGETS run            DESTINATION ${CMAKE_SOURCE_DIR})
+install(TARGETS run            DESTINATION ${CMAKE_SOURCE_DIR}/${OUT_DIR})

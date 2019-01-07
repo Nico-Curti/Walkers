@@ -34,5 +34,6 @@
 # directories
 __pycache__/
 [Bb]in/
+[Bb]uild/
 [Oo]bj/
 [Dd]ep/

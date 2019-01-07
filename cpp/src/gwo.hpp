@@ -3,15 +3,15 @@
 namespace walker
 {
   template<typename Func>
-  auto gwo(Func objfunc,
-           const float &lower_bound,
-           const float &upper_bound,
-           const int &dim,
-           const int &n_population,
-           const int &max_iters,
-           std::size_t seed = 0,
-           int verbose = 1,
-           int nth = 4)
+  Solution gwo(Func objfunc,
+               const float &lower_bound,
+               const float &upper_bound,
+               const int &dim,
+               const int &n_population,
+               const int &max_iters,
+               std::size_t seed = 0,
+               int verbose = 1,
+               int nth = 4)
   {
     typedef std::pair<int, float> best_idx;
     int iteration = 0,
@@ -22,10 +22,10 @@ namespace walker
           a, fitness;
     best_idx best;
 
-    std::unique_ptr<std::unique_ptr<float[]>[]> positions(new std::unique_ptr<float[]>[n_population]);
+    std::shared_ptr<std::shared_ptr<float[]>[]> positions(new std::shared_ptr<float[]>[n_population]);
     std::array<float, 3> r1, r2;
 
-    solution s(n_population, dim, max_iters, "GWO");
+    Solution s(n_population, dim, max_iters, "GWO");
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -75,7 +75,7 @@ namespace walker
 #endif
       for (int i = 0; i < n_population; ++i)
       {
-        fitness = objfunc(positions[i].get());
+        fitness = objfunc(positions[i].get(), dim);
         // find the initial best solution
         best.first   = fitness < best.second  ? i       : best.first;
         best.second  = fitness < best.second  ? fitness : best.second;
@@ -137,6 +137,4 @@ namespace walker
 
     return s;
   }
-
 }
-

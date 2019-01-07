@@ -3,24 +3,23 @@
 namespace walker
 {
   template<typename Func>
-  auto cs(Func objfunc,
-          const float &lower_bound,
-          const float &upper_bound,
-          const int &dim,
-          const int &n_population,
-          const int &max_iters,
-          float pa = .25f, // discovery rate of alien eggs/solution
-          std::size_t seed = 0,
-          int verbose = 1,
-          int nth = 4
-          )
+  Solution cs(Func objfunc,
+              const float &lower_bound,
+              const float &upper_bound,
+              const int &dim,
+              const int &n_population,
+              const int &max_iters,
+              float pa = .25f, // discovery rate of alien eggs/solution
+              std::size_t seed = 0,
+              int verbose = 1,
+              int nth = 4
+              )
   {
     typedef std::pair<int, float> best_idx;
     int iteration = 0;
     best_idx best;
 
-    solution s(n_population, max_iters, "CS");
-
+    Solution s(n_population, max_iters, "CS");
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -49,7 +48,7 @@ namespace walker
 
 
 
-      s.walk[iteration] = best.second;
+      //s.walk[iteration] = ;
 
 #ifdef _OPENMP
 #pragma omp single
@@ -68,4 +67,3 @@ namespace walker
     return s;
   }
 }
-

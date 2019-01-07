@@ -16,7 +16,7 @@
 
 # Random Walkers Simulator
 
-Case study of random walkers simulations.
+Random Walkers and Nature-based Optimizer simulator.
 
 1. [Prerequisites](#prerequisites)
 2. [Installation](#installation)
@@ -25,23 +25,17 @@ Case study of random walkers simulations.
 
 ## Prerequisites
 
-The code supports only c++ standard 17 and needs OpenGL to perform random walk visualization.
+The C++ version supports only c++ standard 17 and needs OpenGL to perform walker visualization.
 
 ## Installation
 
 To build the executables, clone the repo and then type
 
 ```
-make
+mkdir build; cd build; cmake ..; cmake --build . --target install
 ```
 
-for the complete list of available examples, or
-
-```
-make main
-```
-
-to compile the main example
+The whole *Walkers* library will be built with the graphics example (OpenGL support).
 
 ## Authors
 
@@ -53,8 +47,5 @@ See also the list of [contributors](https://github.com/Nico-Curti/walkers/contri
 
 Thanks goes to all contributors of this project:
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore -->
 [<img src="https://avatars1.githubusercontent.com/u/41203427?s=400&v=4" width="100px;"/><br /><sub><b>Dott.ssa Silvia Vitali</b></sub>](https://github.com/silviavitali)<br />
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->

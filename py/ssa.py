@@ -15,11 +15,6 @@ def ssa(objfunc,
         dim,          # Number of dimensions
         n_population, # Population size
         max_iters,    # Number of generations
-        A = .5,       # Loudness  (constant or decreasing)
-        r = .5,       # Pulse rate (constant or decreasing)
-        Qmin = 0.,    # Frequency minimum
-        Qmax = 2.,    # Frequency maximum
-        step = 1e-3,  # scale of normal random generator
         SalpPos = None,
         seed = 0
         ):
@@ -68,7 +63,7 @@ def ssa(objfunc,
     SalpPos = np.clip(SalpPos, lower_bound, upper_bound)
 
     fitness = np.apply_along_axis(objfunc, 1, SalpPos)
-    best    = np.argmin(fitness)
+    best     = np.argmin(fitness)
     if fitness[best] < fmin:
       fmin = fitness[best]
       best = np.array(SalpPos[best], ndmin=2)

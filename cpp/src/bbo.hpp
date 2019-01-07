@@ -3,17 +3,17 @@
 namespace walker
 {
   template<typename Func>
-  auto bbo(Func objfunc,
-           const float &lower_bound,
-           const float &upper_bound,
-           const int &dim,
-           const int &n_population,
-           const int &max_iters,
-           float pmutate = 1e-2f,
-           float elite = 2.f,
-           std::size_t seed = 0,
-           int verbose = 1,
-           int nth = 4)
+  Solution bbo(Func objfunc,
+               const float &lower_bound,
+               const float &upper_bound,
+               const int &dim,
+               const int &n_population,
+               const int &max_iters,
+               float pmutate = 1e-2f,
+               float elite = 2.f,
+               std::size_t seed = 0,
+               int verbose = 1,
+               int nth = 4)
   {
 #ifdef _OPENMP
     nth -= nth % 2;
@@ -22,12 +22,12 @@ namespace walker
 #endif
     int iteration = 0;
 
-    std::shared_ptr<std::shared_ptr<std::function<float[]>>[]> positions(new std::shared_ptr<std::function<float[]>>[n_population]);
+    std::shared_ptr<std::shared_ptr<float[]>[]> positions(new std::shared_ptr<float[]>[n_population]);
 
     std::unique_ptr<float[]> fitness(new float[n_population]);
     std::unique_ptr<int[]> rank(new int[n_population]);
 
-    solution s(n_population, max_iters, "BBO");
+    Solution s(n_population, max_iters, "BBO");
 
     std::mt19937 engine(seed);
     std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
@@ -67,13 +67,13 @@ namespace walker
 
 #ifdef _OPENMP
 #pragma omp for
-    for (int i = 0; i < n_population; ++i) fitness[i] = objfunc(positions[i]);
+    for (int i = 0; i < n_population; ++i) fitness[i] = objfunc(positions[i], dim);
 #else
     std::transform(positions.get(), positions.get() + n_population,
                    fitness.get(),
                    [&](const std::unique_ptr<float[]> &pop)
                    {
-                    return objfunc(pop);
+                    return objfunc(pop, dim);
                   });
 #endif
 
@@ -114,5 +114,4 @@ namespace walker
 
     return s;
   }
-
 }
