@@ -5,7 +5,7 @@
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 def woa(objfunc,
         lower_bound,
@@ -21,12 +21,18 @@ def woa(objfunc,
   np.random.seed(seed)
 
   # Initializing arrays
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
 
   if pos == None:
     pos = np.random.uniform(low=lower_bound,
                             high=upper_bound,
                             size=(dim, n_population))
+  else:
+    pos = pos.T
+    assert(pos.shape == 2)
+    d, n = pos.shape
+    assert(d == dim)
+    assert(n == n_population)
 
   # a decreases linearly fron 2 to 0 in Eq. (2.3)
   at = np.linspace(2, 0, num=max_iters)
@@ -50,7 +56,7 @@ def woa(objfunc,
     # Return back the search agents that go beyond the boundaries of the search space
     pos = np.clip(pos, lower_bound, upper_bound)
     # Calculate objective function for each search agent
-    fitness = np.apply_along_axis(objfunc, 0, pos)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, pos)
 
     # Update the leader
     idx = np.argmin(fitness)
@@ -87,7 +93,7 @@ def woa(objfunc,
 
 
     # Update convergence curve
-    walk[t] = leader_score
+    walk[t] = leader_pos
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
@@ -100,16 +106,14 @@ def woa(objfunc,
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = leader_score
-  sol.population = pos
+  sol.population = pos.T
 
   return sol
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))  \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x))   \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

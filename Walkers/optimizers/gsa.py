@@ -7,7 +7,7 @@
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 from scipy.spatial.distance import pdist, squareform
 
 def gsa(objfunc,
@@ -27,13 +27,19 @@ def gsa(objfunc,
   np.random.seed(seed)
 
   # Initializing arrays
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
   vel  = np.zeros(shape=(n_population, dim), dtype=float)
 
   if pos == None:
     pos = np.random.uniform(low=lower_bound,
                             high=upper_bound,
                             size=(n_population, dim))
+  else:
+    assert(pos.shape == 2)
+    n, d = pos.shape
+    assert(n == n_population)
+    assert(d == dim)
+
   # Calculating Gravitational Constant
   Gt = G0 * np.exp(-alpha * np.arange(0, max_iters) / max_iters)
 
@@ -50,7 +56,7 @@ def gsa(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc, 1, pos)
+  fitness = np.apply_along_axis(objfunc.evaluate, 1, pos)
   fmax = max(fitness)
   fmin = min(fitness)
   epsil = np.finfo(float).eps
@@ -78,11 +84,13 @@ def gsa(objfunc,
     vel  = np.random.uniform(low=0., high=1., size=(n_population, dim)) * vel + acc
     pos += vel
 
-    fitness = np.apply_along_axis(objfunc, 1, pos)
+    fitness = np.apply_along_axis(objfunc.evaluate, 1, pos)
     fmax = max(fitness)
-    fmin = min(fitness)
+    best = np.argmin(fitness)
+    fmin = fitness[best]
+    best = pos[best]
     # Update convergence curve
-    walk[t] = fmin
+    walk[t] = best
 
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
@@ -102,10 +110,8 @@ def gsa(objfunc,
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

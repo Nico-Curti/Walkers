@@ -5,7 +5,7 @@
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 def pso(objfunc,
         lower_bound,
@@ -25,12 +25,18 @@ def pso(objfunc,
   np.random.seed(seed)
 
   # Initializing arrays
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
 
   if pos == None:
     pos = np.random.uniform(low=lower_bound,
                             high=upper_bound,
                             size=(dim, n_population))
+  else:
+    pos = pos.T
+    assert(pos.shape == 2)
+    d, n = pos.shape
+    assert(d == dim)
+    assert(n == n_population)
 
   vel = np.zeros(shape=(dim, n_population))
   wt = np.linspace(wmax, wmin, num=max_iters)
@@ -54,7 +60,7 @@ def pso(objfunc,
     # Check if moths go out of the search spaceand bring it back
     pos = np.clip(pos, lower_bound, upper_bound)
     # evaluate moths
-    fitness = np.apply_along_axis(objfunc, 0, pos)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, pos)
     idx = fitness < p_score
     p_best[:, idx]  = pos[:, idx]
     p_score[idx] = fitness[idx]
@@ -73,7 +79,7 @@ def pso(objfunc,
     pos += vel
 
     # Update convergence curve
-    walk[t] = g_score
+    walk[t] = g_best
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
@@ -86,16 +92,14 @@ def pso(objfunc,
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = g_score
-  sol.population = pos
+  sol.population = pos.T
 
   return sol
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

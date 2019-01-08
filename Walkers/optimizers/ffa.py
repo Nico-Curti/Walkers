@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.distance import squareform, pdist
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 new_alpha = lambda alpha, max_iters : (1e-4/.9)**(1. / max_iters) * alpha
 
@@ -31,8 +31,13 @@ def ffa( objfunc,
     ns = np.random.uniform(low=lower_bound,
                            high=upper_bound,
                            size=(n_population, dim))
+  else:
+    assert(ns.shape == 2)
+    n, d = ns.shape
+    assert(n == n_population)
+    assert(d == dim)
 
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
   domain = abs(upper_bound - lower_bound)
 
   print ("FFA is optimizing \"" + objfunc.__name__ + "\"")
@@ -50,9 +55,11 @@ def ffa( objfunc,
     # This line of reducing alpha is optional
     alpha = new_alpha(alpha, max_iters)
     # Evaluate new solutions (for all n fireflies)
-    fitness = np.apply_along_axis(objfunc, 1, ns)
+    fitness = np.apply_along_axis(objfunc.evaluate, 1, ns)
 
-    fmin = min(fitness)
+    best = np.argmin(fitness)
+    fmin = fitness[best]
+    best = ns[best]
 
     r = squareform(pdist(ns, "euclidean"))
     lightn, light0 = np.meshgrid(fitness, fitness)
@@ -67,7 +74,7 @@ def ffa( objfunc,
       ns[i, :] = ns[i, :] * (1. - b) + ns[j, :] * b + r
 
     # Update convergence curve
-    walk[t] = fmin
+    walk[t] = best
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
@@ -86,10 +93,8 @@ def ffa( objfunc,
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

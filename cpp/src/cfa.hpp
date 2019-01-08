@@ -1,3 +1,6 @@
+#ifndef CFA_H
+#define CFA_H
+
 #include <walkers.h>
 
 namespace walker
@@ -24,7 +27,7 @@ namespace walker
 
     std::shared_ptr<std::shared_ptr<float[]>[]> positions(new std::shared_ptr<float[]>[n_population]);
 
-    Solution s(n_population, max_iters, "CFA");
+    Solution s(n_population, dim, max_iters, "CFA");
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -139,3 +142,5 @@ namespace walker
     return s;
   }
 }
+
+#endif // CFA_H

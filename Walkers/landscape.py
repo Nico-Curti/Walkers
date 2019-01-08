@@ -5,7 +5,7 @@ import numpy as np
 
 class ObjectiveFunction(object):
   def __init__(self, name, dim, lower_bound, upper_bound):
-    self.name = name
+    self.__name__ = name
     self.dim = dim
     self.lower_bound = lower_bound
     self.upper_bound = upper_bound
@@ -13,6 +13,8 @@ class ObjectiveFunction(object):
   def evaluate(self, arr):
     pass
   def get_minimum(self):
+    pass
+  def get_boundary(self):
     pass
 
 class AckleyFunction(ObjectiveFunction):
@@ -28,6 +30,9 @@ class AckleyFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.repeat(0., repeats=self.dim)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 class BoothFunction(ObjectiveFunction):
 
   def __init__(self, dim=2):
@@ -41,6 +46,9 @@ class BoothFunction(ObjectiveFunction):
 
   def get_minimum(self):
     return np.array([1., 3.])
+
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
 
 
 class BukinN6Function(ObjectiveFunction):
@@ -58,6 +66,9 @@ class BukinN6Function(ObjectiveFunction):
   def get_minimum(self):
     return np.array([-10., 1.])
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class CrossInTrayFunction(ObjectiveFunction):
 
@@ -73,6 +84,9 @@ class CrossInTrayFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.array([ (1.3491, -1.3491), (1.3491, 1.3491), (-1.3491, 1.3491), (-1.3491, -1.3491) ])
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class DixonPriceFunction(ObjectiveFunction):
 
@@ -87,6 +101,9 @@ class DixonPriceFunction(ObjectiveFunction):
   def get_minimum(self):
     idx = 2.**(np.arange(1., self.dim + 1.))
     return 2.**(-(idx - 2)/idx)
+
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
 
 
 class DropWaveFunction(ObjectiveFunction):
@@ -104,6 +121,9 @@ class DropWaveFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.repeat(0., repeats=self.dim)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class EggholderFunction(ObjectiveFunction):
 
@@ -119,6 +139,9 @@ class EggholderFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.array([512, 404.2319])
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 class GramacyLeeFunction(ObjectiveFunction):
 
   def __init__(self, dim=1):
@@ -131,6 +154,9 @@ class GramacyLeeFunction(ObjectiveFunction):
 
   def get_minimum(self):
     return [] # around (.6, -.9)
+
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
 
 
 class GrieWankFunction(ObjectiveFunction):
@@ -145,6 +171,8 @@ class GrieWankFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.repeat(0., repeats=self.dim)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
 
 class HolderTableFunction(ObjectiveFunction):
 
@@ -160,6 +188,9 @@ class HolderTableFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.array([ (8.05502, 9.66459), (8.05502, -9.66459), (-8.05502, 9.66459), (-8.05502, -9.66459) ])
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class MatyasFunction(ObjectiveFunction):
 
@@ -174,6 +205,9 @@ class MatyasFunction(ObjectiveFunction):
 
   def get_minimum(self):
     return np.zeros(shape=(self.dim,), dtype=float)
+
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
 
 
 class McCormickFunction(ObjectiveFunction):
@@ -191,6 +225,10 @@ class McCormickFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.array([-.54719, -1.54719])
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
+
 # class LangermannFunction(ObjectiveFunction):
 #   self.m, self.c = 5., np.array([1., 2., 5., 2., 3.])
 #   self.A = np.array([ [3., 5.],
@@ -199,17 +237,21 @@ class McCormickFunction(ObjectiveFunction):
 #                       [1., 4.],,
 #                       [7., 9.]
 #                     ])
-
+#
 #   def __init__(self, dim):
 #     assert(dim == 2)
 #     super(LangermannFunction, self).__init__('Langermann', dim, 0., 10.)
-
+#
 #   def evaluate(self, arr):
 #     assert(len(x) == self.dim)
 #     return np.sum(c * np.exp(  ) * np.cos(np.pi * ) )
-
+#
 #   def get_minimum(self):
 #     return np.array([None]) # ignored
+#
+#   def get_boundary(self):
+#     return (self.lower_bound, self.upper_bound)
+
 
 class LevyFunction(ObjectiveFunction):
 
@@ -227,6 +269,9 @@ class LevyFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.ones(shape=(self.dim,), dtype=float)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class LevyN13Function(ObjectiveFunction):
 
@@ -242,20 +287,26 @@ class LevyN13Function(ObjectiveFunction):
   def get_minimum(self):
     return np.repeat(1., repeats=self.dim)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 # class PowerSumFunction(ObjectiveFunction):
 #   self.b = np.array([8., 18., 44., 114.], dtype=float)
-
+#
 #   def __init__(self, dim):
 #     assert(dim == 4)
 #     super(PowerSumFunction, self).__init__('PowerSum', dim, 0., dim)
-
+#
 #   def evaluate(self, arr):
 #     assert(len(arr) == self.dim)
 #     return sum(  )
-
+#
 #   def get_minimum(self):
 #     return np.array([None]) # ignore
+#
+#   def get_boundary(self):
+#     return (self.lower_bound, self.upper_bound)
 
 
 class RastringFunction(ObjectiveFunction):
@@ -270,6 +321,9 @@ class RastringFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.zeros(shape=(self.dim,), dtype=float)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class RosenbrockFunction(ObjectiveFunction):
 
@@ -282,6 +336,9 @@ class RosenbrockFunction(ObjectiveFunction):
 
   def get_minimum(self):
     return np.ones(shape=(self.dim,), dtype=float)
+
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
 
 
 class SchafferN2Function(ObjectiveFunction):
@@ -298,6 +355,9 @@ class SchafferN2Function(ObjectiveFunction):
   def get_minimum(self):
     return np.zeros(shape=(self.dim,), dtype=float)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class SchafferN4Function(ObjectiveFunction):
 
@@ -313,6 +373,9 @@ class SchafferN4Function(ObjectiveFunction):
   def get_minimum(self):
     return np.array([None])#np.zeros(shape=(self.dim,), dtype=float)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class SchwefelFunction(ObjectiveFunction):
 
@@ -325,6 +388,9 @@ class SchwefelFunction(ObjectiveFunction):
 
   def get_minimum(self):
     return np.repeat(420.9687, repeats=self.dim)
+
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
 
 class ShubertFunction(ObjectiveFunction):
 
@@ -342,6 +408,9 @@ class ShubertFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.array([None])#np.zeros(shape=(self.dim,), dtype=float)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class SixHumpCamelFunction(ObjectiveFunction):
   # x belongs to [-3, 3]
@@ -358,6 +427,10 @@ class SixHumpCamelFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.array([(.0898, -.7126), (-.0898, .7126)])
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
+
 class ThreeHumpCamelFunction(ObjectiveFunction):
 
   def __init__(self, dim=2):
@@ -372,6 +445,9 @@ class ThreeHumpCamelFunction(ObjectiveFunction):
   def get_minimum(self):
     return np.zeros(shape=(self.dim,), dtype=float)
 
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
 
 class ZakharovFunction(ObjectiveFunction):
 
@@ -385,6 +461,11 @@ class ZakharovFunction(ObjectiveFunction):
 
   def get_minimum(self):
     return np.zeros(shape=(self.dim,), dtype=float)
+
+  def get_boundary(self):
+    return (self.lower_bound, self.upper_bound)
+
+
 
 
 if __name__ == '__main__':
@@ -433,10 +514,10 @@ if __name__ == '__main__':
   ax.zaxis.set_major_locator(LinearLocator(10))
   ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
-  ax.set_title(func.name, fontsize=14, fontweight='bold')
+  ax.set_title(func.__name__, fontsize=14, fontweight='bold')
   ax.set_xlabel("x", fontsize=14)
   ax.set_ylabel("y", fontsize=14)
-  ax.set_zlabel(func.name+"(x, y)", fontsize=14)
+  ax.set_zlabel(func.__name__+"(x, y)", fontsize=14)
 
   fig.colorbar(surf , shrink=.5, aspect=5)
   plt.show()

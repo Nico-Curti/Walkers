@@ -20,5 +20,5 @@ class Solution:
     self.end_time       = 0.
     self.execution_time = 0.
 
-    self.walk       = []
-    self.population = []
+    self.walk           = []
+    self.population     = []

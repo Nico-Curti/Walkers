@@ -7,7 +7,7 @@
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 def bat(objfunc,
         lower_bound,
@@ -21,7 +21,7 @@ def bat(objfunc,
         Qmax = 2.,    # Frequency maximum
         step = 1e-3,  # scale of normal random generator
         Sol = None,
-        ssed = 0
+        seed = 0
         ):
 
   np.random.seed(seed)
@@ -29,13 +29,19 @@ def bat(objfunc,
   # Initializing arrays
   Qt = np.random.uniform(low=Qmin, high=Qmax, size=(max_iters, n_population))
   v  = np.zeros(shape=(dim, n_population), dtype=float) # velocities
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
 
   if Sol == None:
     # Initialize the population/solutions
     Sol = np.random.uniform(low=lower_bound,
                             high=upper_bound,
                             size=(dim, n_population))
+  else:
+    Sol = Sol.T
+    assert(Sol.shape == 2)
+    d, n = Sol.shape
+    assert(d == dim)
+    assert(n == n_population)
 
   print ("BAT is optimizing \"" + objfunc.__name__ + "\"")
 
@@ -47,7 +53,7 @@ def bat(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc, 0, Sol)
+  fitness = np.apply_along_axis(objfunc.evaluate, 0, Sol)
   best = np.argmin(fitness)
   fmin = fitness[best]
   best = np.array(Sol[:, best], ndmin=2)
@@ -68,7 +74,7 @@ def bat(objfunc,
     S[:, rng] = best.T + step * np.random.randn(dim, dim_rng)
 
     # Evaluate new solutions
-    fit_new = np.apply_along_axis(objfunc, 0, S)
+    fit_new = np.apply_along_axis(objfunc.evaluate, 0, S)
 
     # Update if the solution improves
     upd = np.logical_and(rng2, fit_new <= fitness)
@@ -81,9 +87,9 @@ def bat(objfunc,
     best = np.argmin(fitness)
     # Update the current best solution
     fmin = fitness[best]
-    best = np.array(S[:, best], ndmin=2)
+    best = np.array(Sol[:, best], ndmin=2)
     # Update convergence curve
-    walk[t] = fmin
+    walk[t] = best
 
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
@@ -97,16 +103,13 @@ def bat(objfunc,
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = fmin
-  sol.population = Sol
+  sol.population = Sol.T
 
   return sol
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

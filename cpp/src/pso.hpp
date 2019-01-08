@@ -1,3 +1,6 @@
+#ifndef PSO_H
+#define PSO_H
+
 #include <walkers.h>
 
 namespace walker
@@ -26,7 +29,7 @@ namespace walker
     std::unique_ptr<std::unique_ptr<float[]>[]> velocity (new std::unique_ptr<float[]>[n_population]);
     std::unique_ptr<float[]> fitness(new float[n_population]);
 
-    Solution s(n_population, max_iters, "PSO");
+    Solution s(n_population, dim, max_iters, "PSO");
 
 
     // Initialize timer for the experiment
@@ -114,3 +117,5 @@ namespace walker
     return s;
   }
 }
+
+#endif //PSO_H

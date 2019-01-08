@@ -6,7 +6,7 @@ import numpy as np
 import time
 import sys
 from bisect import bisect_left
-from solution import Solution
+from ..solution import Solution
 
 def bbo(objfunc,
         lower_bound,
@@ -23,12 +23,17 @@ def bbo(objfunc,
   np.random.seed(seed)
 
   # Initializing arrays
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
 
   if pos == None:
     pos = np.random.uniform(low=lower_bound,
                             high=upper_bound,
                             size=(n_population, dim))
+  else:
+    assert(pos.shape == 2)
+    n, d = pos.shape
+    assert(n == n_population)
+    assert(d == dim)
 
   mut = np.linspace(n_population, 1., n_population) / (n_population + 1)
   lambda1t = (1. - mut).reshape((n_population, 1))
@@ -46,7 +51,7 @@ def bbo(objfunc,
                  )
 
   # compute objective function for each particle
-  fitness = np.apply_along_axis(objfunc, 1, pos)
+  fitness = np.apply_along_axis(objfunc.evaluate, 1, pos)
   idx     = np.argsort(fitness)
   pos     = pos[idx, :]
   fitness = fitness[idx]
@@ -78,7 +83,7 @@ def bbo(objfunc,
                                      high=upper_bound,
                                      size=(n_population, dim))[mut]
     # compute objective function for each individual
-    fitness = np.apply_along_axis(objfunc, 1, new_pos)
+    fitness = np.apply_along_axis(objfunc.evaluate, 1, new_pos)
     pos = new_pos
 
     idx = np.argsort(fitness)
@@ -90,7 +95,7 @@ def bbo(objfunc,
     fitness = fitness[idx]
 
     # Update convergence curve
-    walk[t] = fitness[0]
+    walk[t] = pos[idx[0]]
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
@@ -109,10 +114,8 @@ def bbo(objfunc,
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

@@ -1,3 +1,6 @@
+#ifndef BBO_H
+#define BBO_H
+
 #include <walkers.h>
 
 namespace walker
@@ -27,7 +30,7 @@ namespace walker
     std::unique_ptr<float[]> fitness(new float[n_population]);
     std::unique_ptr<int[]> rank(new int[n_population]);
 
-    Solution s(n_population, max_iters, "BBO");
+    Solution s(n_population, dim, max_iters, "BBO");
 
     std::mt19937 engine(seed);
     std::uniform_real_distribution<float> bound_rng(lower_bound, upper_bound);
@@ -49,11 +52,11 @@ namespace walker
 #pragma omp for
     for (int i = 0; i < n_population; ++i)
     {
-      positions[i] = new float[dim];
+      positions[i] = std::make_unique<float[]>(dim);
       rank[i] = i;
     }
 #else
-    std::generate_n(positions.get(), n_population, [&](){return new float[dim];});
+    std::generate_n(positions.get(), n_population, [&](){return std::make_unique<float[]>(dim);});
     std::iota(rank.get(), rank.get() + n_population, 0);
 #endif
 
@@ -67,13 +70,13 @@ namespace walker
 
 #ifdef _OPENMP
 #pragma omp for
-    for (int i = 0; i < n_population; ++i) fitness[i] = objfunc(positions[i], dim);
+    for (int i = 0; i < n_population; ++i) fitness[i] = objfunc(positions[i].get(), dim);
 #else
     std::transform(positions.get(), positions.get() + n_population,
                    fitness.get(),
-                   [&](const std::unique_ptr<float[]> &pop)
+                   [&](const auto &pop)
                    {
-                    return objfunc(pop, dim);
+                    return objfunc(pop.get(), dim);
                   });
 #endif
 
@@ -115,3 +118,5 @@ namespace walker
     return s;
   }
 }
+
+#endif //BBO_H

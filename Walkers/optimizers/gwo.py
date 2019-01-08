@@ -6,7 +6,7 @@
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 def gwo(objfunc,
         lower_bound,
@@ -25,13 +25,19 @@ def gwo(objfunc,
   alpha_pos, beta_pos, delta_pos = np.zeros(shape=(dim, n_population), dtype=float), \
                                    np.zeros(shape=(dim, n_population), dtype=float), \
                                    np.zeros(shape=(dim, n_population), dtype=float)
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
 
   if positions == None:
     # Initialize the population/solutions
     positions = np.random.uniform(low=lower_bound,
                                   high=upper_bound,
                                   size=(dim, n_population))
+  else:
+    positions = positions.T
+    assert(positions.shape == 2)
+    d, n = positions.shape
+    assert(d == dim)
+    assert(n == n_population)
 
   print ("GWO is optimizing \"" + objfunc.__name__ + "\"")
 
@@ -49,7 +55,7 @@ def gwo(objfunc,
     # Return back the search agents that go beyond the boundaries of the search space
     positions = np.clip(positions, lower_bound, upper_bound)
     # compute objective function for each search agent
-    fitness = np.apply_along_axis(objfunc, 0, positions)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, positions)
 
     # update alpha, beta and delta
     minpos   = np.argmin(fitness)
@@ -86,7 +92,7 @@ def gwo(objfunc,
 
     positions = (D_alpha + D_beta + D_delta) / 3
 
-    walk[t] = alpha_score
+    walk[t] = alpha_pos
 
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
@@ -100,16 +106,14 @@ def gwo(objfunc,
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = fmin
-  sol.population = positions
+  sol.population = positions.T
 
   return sol
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

@@ -1,3 +1,6 @@
+#ifndef GWO_H
+#define GWO_H
+
 #include <walkers.h>
 
 namespace walker
@@ -138,3 +141,5 @@ namespace walker
     return s;
   }
 }
+
+#endif //GWO_H

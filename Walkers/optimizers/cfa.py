@@ -5,7 +5,7 @@
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 def cfa(objfunc,
         lower_bound,
@@ -20,12 +20,17 @@ def cfa(objfunc,
   np.random.seed(seed)
 
   # Initializing arrays
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
 
   if pos == None:
     pos = np.random.uniform(low=lower_bound,
                             high=upper_bound,
                             size=(n_population, dim))
+  else:
+    assert(pos.shape == 2)
+    n, d = pos.shape
+    assert(n == n_population)
+    assert(d == dim)
 
   m = n_population // 4
   g21 = m + 1
@@ -44,7 +49,7 @@ def cfa(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc, 1, pos)
+  fitness = np.apply_along_axis(objfunc.evaluate, 1, pos)
   best = np.argmin(fitness)
   fmin = fitness[best]
   best = pos[best, :]
@@ -64,13 +69,13 @@ def cfa(objfunc,
                                         high=upper_bound,
                                         size=(n_population - g41, dim))
 
-    fitness = np.apply_along_axis(objfunc, 1, pos)
+    fitness = np.apply_along_axis(objfunc.evaluate, 1, pos)
     best = np.argmin(fitness)
     fmin = fitness[best]
     best = pos[best, :]
 
     # Update convergence curve
-    walk[t] = fmin
+    walk[t] = best
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
@@ -89,10 +94,8 @@ def cfa(objfunc,
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 50

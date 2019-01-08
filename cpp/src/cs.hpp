@@ -1,3 +1,6 @@
+#ifndef CS_H
+#define CS_H
+
 #include <walkers.h>
 
 namespace walker
@@ -19,7 +22,7 @@ namespace walker
     int iteration = 0;
     best_idx best;
 
-    Solution s(n_population, max_iters, "CS");
+    Solution s(n_population, dim, max_iters, "CS");
 
     // Initialize timer for the experiment
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -67,3 +70,5 @@ namespace walker
     return s;
   }
 }
+
+#endif // CS_H

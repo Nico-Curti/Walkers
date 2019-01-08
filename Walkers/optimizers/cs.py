@@ -7,7 +7,7 @@ import numpy as np
 from scipy.special import gamma
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 levy_flight = lambda beta : ( gamma(1. + beta)      * np.sin(np.pi * beta * .5) / \
                              (gamma((1. + beta)*.5) * beta * 2.**( (beta - 1.) * .5)) \
@@ -29,15 +29,21 @@ def cs( objfunc,
 
   np.random.seed(seed)
 
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
   sigma = levy_flight(beta)
   beta_inv = 1. / beta
 
-  if nest = None:
+  if nest == None:
     # RInitialize nests randomely
     nest = np.random.uniform(low=lower_bound,
                              high=upper_bound,
                              size=(dim, n_population))
+  else:
+    nest = nest.T
+    assert(nest.shape == 2)
+    d, n = nest.shape
+    assert(d == dim)
+    assert(n == n_population)
 
   print ("CS is optimizing \"" + objfunc.__name__ + "\"")
 
@@ -49,7 +55,7 @@ def cs( objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc, 0, nest)
+  fitness = np.apply_along_axis(objfunc.evaluate, 0, nest)
   best = np.argmin(fitness)
   fmin = fitness[best]
   best = np.array(nest[:, best], ndmin=2).T
@@ -67,7 +73,7 @@ def cs( objfunc,
 
     # Evaluate new solutions and find best
     # get_best_nest function
-    fit_new  = np.apply_along_axis(objfunc, 0, new_nest)
+    fit_new  = np.apply_along_axis(objfunc.evaluate, 0, new_nest)
     idx = fit_new <= fitness
     fitness[idx] = fit_new[idx]
     nest[:, idx] = new_nest[:, idx]
@@ -82,7 +88,7 @@ def cs( objfunc,
 
     # Evaluate new solutions and find best
     # get_best_nest function
-    fit_new  = np.apply_along_axis(objfunc, 0, new_nest)
+    fit_new  = np.apply_along_axis(objfunc.evaluate, 0, new_nest)
     idx = fit_new <= fitness
     fitness[idx] = fit_new[idx]
     nest[:, idx] = new_nest[:, idx]
@@ -93,7 +99,7 @@ def cs( objfunc,
       best = np.array(new_nest[:, tmp_best], ndmin=2).T
 
     # Update convergence curve
-    walk[t] = fmin
+    walk[t] = best
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
@@ -106,16 +112,14 @@ def cs( objfunc,
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = fmin
-  sol.population = nest
+  sol.population = nest.T
 
   return sol
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

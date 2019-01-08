@@ -1,3 +1,6 @@
+#ifndef SSA_H
+#define SSA_H
+
 #include <walkers.h>
 
 namespace walker
@@ -14,8 +17,8 @@ namespace walker
                int nth = 4
                )
   {
-    using res_t = typename std::result_of<Func(const float *)>::type; // since c++17
-    static_assert(std::is_floating_point<res_t>::value, "Invalid type function");
+    //using res_t = typename std::result_of<Func(const float *)>::type; // since c++17
+    //static_assert(std::is_floating_point<res_t>::value, "Invalid type function");
 
     typedef std::pair<int, float> best_idx;
     const int half = n_population >> 1;
@@ -153,3 +156,5 @@ namespace walker
     return s;
   }
 }
+
+#endif //SSA_H

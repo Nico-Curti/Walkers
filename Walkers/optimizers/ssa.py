@@ -7,7 +7,7 @@
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 def ssa(objfunc,
         lower_bound,
@@ -26,8 +26,13 @@ def ssa(objfunc,
     SalpPos = np.random.uniform(low=lower_bound,
                                 high=upper_bound,
                                 size=(n_population, dim))
+  else:
+    assert(SalpPos.shape == 2)
+    n, d = SalpPos.shape
+    assert(n == n_population)
+    assert(d == dim)
 
-  walk = np.empty(shape=(max_iters,), dtype=float)
+  walk = np.empty(shape=(max_iters, dim), dtype=float)
 
   print ("SSA is optimizing \"" + objfunc.__name__ + "\"")
 
@@ -39,7 +44,7 @@ def ssa(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc, 1, SalpPos)
+  fitness = np.apply_along_axis(objfunc.evaluate, 1, SalpPos)
   best = np.argmin(fitness)
   fmin = fitness[best]
   best = np.array(SalpPos[best], ndmin=2)
@@ -62,14 +67,14 @@ def ssa(objfunc,
     SalpPos[half :] = (SalpPos[half - 1: -1] + SalpPos[half :]) * .5
     SalpPos = np.clip(SalpPos, lower_bound, upper_bound)
 
-    fitness = np.apply_along_axis(objfunc, 1, SalpPos)
+    fitness = np.apply_along_axis(objfunc.evaluate, 1, SalpPos)
     best     = np.argmin(fitness)
     if fitness[best] < fmin:
       fmin = fitness[best]
       best = np.array(SalpPos[best], ndmin=2)
 
     # Update convergence curve
-    walk[t] = fmin
+    walk[t] = best
 
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
@@ -89,10 +94,8 @@ def ssa(objfunc,
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction as score_func
 
   n_population = 50
   max_iters = 500

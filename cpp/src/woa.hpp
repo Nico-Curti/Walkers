@@ -1,3 +1,6 @@
+#ifndef WOA_H
+#define WOA_H
+
 #include <walkers.h>
 
 namespace walker
@@ -21,7 +24,7 @@ namespace walker
 
     std::shared_ptr<std::shared_ptr<float[]>[]> positions(new std::shared_ptr<float[]>[n_population]);
 
-    Solution s(n_population, max_iters, "WOA");
+    Solution s(n_population, dim, max_iters, "WOA");
 
 
     // Initialize timer for the experiment
@@ -127,3 +130,5 @@ namespace walker
     return s;
   }
 }
+
+#endif //WOA_H

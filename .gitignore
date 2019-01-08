@@ -37,3 +37,4 @@ __pycache__/
 [Bb]uild/
 [Oo]bj/
 [Dd]ep/
+*.egg-info/

@@ -1,3 +1,8 @@
+# Walkers Version
+MAJOR 	 := 1
+MINOR 	 := 0
+REVISION := 0
+
 # Setting bash colors
 RED    := $(shell tput -Txterm setaf 1)
 YELLOW := $(shell tput -Txterm setaf 3)
@@ -11,15 +16,15 @@ RESET  := $(shell tput -Txterm sgr0   )
 #                         COMPILE OPTIONS                       #
 #################################################################
 
-OMP     := 1
-DEBUG   := 1
+OMP     ?= 1
+DEBUG   ?= 1
+VERBOSE ?= 1
 
 STD     := -std=c++17
 
-CFLAGS  := -Wall -Wextra -Wno-unused-result
+CFLAGS  := -DMAJOR=$(MAJOR) -DMINOR=$(MINOR) -DREVISION=$(REVISION)
+#-Wall -Wextra -Wno-unused-result
 LDFLAGS := -fPIC -lGL -lGLU -lglut
-AR      := ar
-ARFLAGS := rcs
 
 #################################################################
 #                         PARSE OPTIONS                         #
@@ -33,28 +38,39 @@ ifneq ($(STD), -std=c++17)
 $(error $(RED)C++ minimum standard required is c++17$(RESET))
 endif
 
+omp_check := $(shell echo |cpp -fopenmp -dM | grep -i open | cut -d' ' -f 3)
+ifneq ($(shell expr $(omp_check) \>= 201307), 1)
+$(error $(RED)Your OpenMP is too old. Required OpenMP 4.0. Please upgrade.$(RESET))
+endif
+
 CFLAGS  += $(strip $(call config, $(OMP),     1, -fopenmp, ))
+CFLAGS  += $(strip $(call config, $(VERBOSE), 1, -DVERBOSE,))
 OPTS    := $(strip $(call config, $(DEBUG),   1, -O0 -g -DDEBUG, -Ofast))
 
 #################################################################
 #                         SETTING DIRECTORIES                   #
 #################################################################
 
-SRC_DIR    := ./src
-INC_DIR    := ./include
+HPP_DIR    := ./cpp/src
+INC_DIR    := ./cpp/include
 EXAMPLE    := ./example
+VIEWER_DIR := $(INC_DIR)/viewer
 OBJ_DIR    := ./obj
 OUT_DIR    := ./bin
 DEP_DIR    := ./.dep
 
 DFLAGS  = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.Td
 
-SRC    := $(sort $(wildcard $(SRC_DIR)/*.cpp))
+HPP    := $(sort $(wildcard $(HPP_DIR)/*.hpp))
+VIEW   := $(sort $(wildcard $(HPP_DIR)/viewer/*.cpp))
+SRC    := $(HPP) $(VIEW)
 HEADER := $(sort $(wildcard $(INC_DIR)/*.h))
+HEADER += $(sort $(wildcard $(INC_DIR)/viewer/*h))
 EXE    := $(sort $(wildcard $(EXAMPLE)/*.cpp))
-INC    := -I$(INC_DIR)
+INC    := -I$(INC_DIR) -I$(HPP_DIR) -I$(VIEWER_DIR)
 
-OBJS   := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
+OBJS   := $(patsubst $(HPP_DIR)/viewer/%.cpp, $(OBJ_DIR)/%.o, $(VIEW))
+HPPo   := $(patsubst $(HPP_DIR)/%.hpp, $(OBJ_DIR)/%.o, $(HPP))
 
 #################################################################
 #                         OS FUNCTIONS                          #
@@ -82,19 +98,25 @@ all: help
 #                         MAIN RULES                            #
 #################################################################
 
-main: $(DEP_DIR) $(OBJ_DIR) $(OUT_DIR) $(OBJS)    ##@examples Compile main example.
-	@printf "%-80s " "Compiling main example ..."
+test: $(DEP_DIR) $(OBJ_DIR) $(OUT_DIR) $(OBJS)       ##@examples Build test example.
+	@printf "%-80s " "Building test example ..."
 	@$(CXX) $(OBJS) $(EXAMPLE)/run.cpp -o $(OUT_DIR)/run $(CFLAGS) $(LDFLAGS)
 	@printf "[done]\n"
+
 
 #################################################################
 #                         walkers  RULES                        #
 #################################################################
 
-script: $(DEP_DIR) $(OBJ_DIR) $(OBJS)         ##@library Compile all the objs.
-libwalk: $(OBJS) $(ALIB)                      ##@library Create shared walkers library.
+build: $(DEP_DIR) $(OBJ_DIR) $(OBJS) $(HPPo)         ##@library Build all the scripts.
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEP_DIR)/%.d # compile all cpp in SRC_DIR for OBJ
+$(OBJ_DIR)/%.o: $(HPP_DIR)/viewer/%.cpp $(DEP_DIR)/%.d # compile all hpp in HPP_DIR for OBJ
+	@printf "%-80s " "generating obj for $<"
+	@$(CXX) $(DFLAGS) $(CFLAGS) -c $< -o $@
+	@mv -f $(DEP_DIR)/$*.Td $(DEP_DIR)/$*.d && touch $@
+	@printf "[done]\n"
+
+$(OBJ_DIR)/%.o: $(HPP_DIR)/%.hpp $(DEP_DIR)/%.d # compile all hpp in HPP_DIR for OBJ
 	@printf "%-80s " "generating obj for $<"
 	@$(CXX) $(DFLAGS) $(CFLAGS) -c $< -o $@
 	@mv -f $(DEP_DIR)/$*.Td $(DEP_DIR)/$*.d && touch $@
@@ -102,7 +124,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(DEP_DIR)/%.d # compile all cpp in SRC_DIR for
 
 $(DEP_DIR)/%.d: ;
 .PRECIOUS: $(DEP_DIR)/%.d
-include $(wildcard $(patsubst %,$(DEP_DIR)/%.d,$(basename $(SRC))))
+include $(wildcard $(patsubst %,$(DEP_DIR)/%.d,$(basename $(VIEW))))
 
 #################################################################
 #                         UTILS RULES                           #
