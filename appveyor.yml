@@ -7,7 +7,7 @@ environment:
     VCPKG_ROOT: C:\projects\vcpkg
     VCPKG_DEFAULT_TRIPLET: x64-windows-physycom
     matrix:
-    - platform: Win64
+    - platform: Win32
       COMPILER: vs
 
 install:
