@@ -151,9 +151,30 @@ namespace walker
     s.walk[iteration] = Sol[best.first];
 
 #ifdef _OPENMP
+#pragma omp single nowait
+    {
+#endif
+      switch(verbose)
+      {
+        case 1: printProgress(iteration, max_iters, start_time);
+        break;
+        case 2:
+        {
+          std::cout << "iter: "
+                    << std::setw(5) << iteration             << " : "
+                    << std::setw(5) << std::setprecision(3)  << best.second
+                    << std::endl;
+        } break;
+        default: break;
+      }
+#ifdef _OPENMP
+    } // close single section
+#endif
+
+#ifdef _OPENMP
 #pragma omp single
 #endif
-      ++iteration;
+    ++iteration;
 
     if (iteration >= max_iters) break;
 

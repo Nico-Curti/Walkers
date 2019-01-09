@@ -20,14 +20,13 @@ static constexpr float inf = std::numeric_limits<float>::infinity();
 #include <merge_sort.h>
 #endif
 
-#ifdef VERBOSE
 #include <iostream>
 #include <iomanip>
 
 static constexpr int PBWIDTH = 50;
-auto printProgress = [](const float &now, const int &total, const std::chrono::high_resolution_clock::time_point &start_time)
+auto printProgress = [](const int &now, const int &total, const std::chrono::high_resolution_clock::time_point &start_time)
                       {
-                        float perc = now / total;
+                        float perc = static_cast<float>(now) / total;
                         int lpad = static_cast<int>(perc * PBWIDTH);
                         std::cout << "\rOptimization progress:"
                                   << std::right << std::setw(5) << std::setprecision(3) << perc * 100.f << "%  ["
@@ -36,7 +35,6 @@ auto printProgress = [](const float &now, const int &total, const std::chrono::h
                                   << " [" << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start_time).count() << " sec]";
                         std::cout << std::flush;
                       };
-#endif // VERBOSE
 
 #include <bat.hpp>
 #include <bbo.hpp>

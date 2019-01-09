@@ -101,6 +101,28 @@ namespace walker
 
       s.walk[iteration] = positions[rank[0]];
 
+
+#ifdef _OPENMP
+#pragma omp single nowait
+    {
+#endif
+      switch(verbose)
+      {
+        case 1: printProgress(iteration, max_iters, start_time);
+        break;
+        case 2:
+        {
+          std::cout << "iter: "
+                    << std::setw(5) << iteration             << " : "
+                    << std::setw(5) << std::setprecision(3)  << fitness[rank[0]]
+                    << std::endl;
+        } break;
+        default: break;
+      }
+#ifdef _OPENMP
+    } // close single section
+#endif
+
 #ifdef _OPENMP
 #pragma omp single
 #endif

@@ -18,7 +18,6 @@ RESET  := $(shell tput -Txterm sgr0   )
 
 OMP     ?= 1
 DEBUG   ?= 1
-VERBOSE ?= 1
 
 STD     := -std=c++17
 
@@ -44,7 +43,6 @@ $(error $(RED)Your OpenMP is too old. Required OpenMP 4.0. Please upgrade.$(RESE
 endif
 
 CFLAGS  += $(strip $(call config, $(OMP),     1, -fopenmp, ))
-CFLAGS  += $(strip $(call config, $(VERBOSE), 1, -DVERBOSE,))
 OPTS    := $(strip $(call config, $(DEBUG),   1, -O0 -g -DDEBUG, -Ofast))
 
 #################################################################
