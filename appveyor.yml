@@ -5,8 +5,9 @@ configuration: Release
 environment:
     WORKSPACE: C:\projects
     VCPKG_ROOT: C:\projects\vcpkg
+    VCPKG_DEFAULT_TRIPLET: x64-windows-physycom
     matrix:
-    - platform: Win64
+    - platform: Win32
       COMPILER: vs
 
 install:
@@ -25,16 +26,18 @@ install:
   - set PATH=C:\projects\deps\cmake\bin;%PATH%
   - cmake --version
 
+  - git clone https://github.com/physycom/sysconfig
   - if [%COMPILER%]==[vs] git clone https://github.com/Microsoft/vcpkg
+  - if [%COMPILER%]==[vs] copy %WORKSPACE%\sysconfig\cmake\%VCPKG_DEFAULT_TRIPLET%.cmake %WORKSPACE%\vcpkg\triplets\
   - if [%COMPILER%]==[vs] cd %VCPKG_ROOT%
   - if [%COMPILER%]==[vs] bootstrap-vcpkg.bat
   - if [%COMPILER%]==[vs] vcpkg integrate install
   - if [%COMPILER%]==[vs] vcpkg update
-  - if [%COMPILER%]==[vs] vcpkg install freeglut:x64-windows-static opengl:x64-windows-static freeglut opengl
+  - if [%COMPILER%]==[vs] vcpkg install freeglut opengl
   - cd %WORKSPACE%\Walkers\
   - mkdir build
   - cd build
 
 build_script:
-  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win64" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DCMAKE_BUILD_TYPE=Release" "-DOMP=OFF"
+  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" "-DCMAKE_BUILD_TYPE=Release" "-DOMP=OFF"
   - if [%COMPILER%]==[vs] cmake --build . --config Release
