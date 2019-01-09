@@ -26,7 +26,6 @@ install:
   - set PATH=C:\projects\deps\cmake\bin;%PATH%
   - cmake --version
 
-  - mkdir cygwin-downloads
   - git clone https://github.com/physycom/sysconfig
   - if [%COMPILER%]==[vs] git clone https://github.com/Microsoft/vcpkg
   - if [%COMPILER%]==[vs] copy %WORKSPACE%\sysconfig\cmake\%VCPKG_DEFAULT_TRIPLET%.cmake %WORKSPACE%\vcpkg\triplets\
@@ -40,5 +39,5 @@ install:
   - cd build
 
 build_script:
-  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win64" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" "-DCMAKE_BUILD_TYPE=Debug" "-DOMP=OFF"
-  - if [%COMPILER%]==[vs] cmake --build .
+  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win64" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" "-DCMAKE_BUILD_TYPE=Release" "-DOMP=OFF"
+  - if [%COMPILER%]==[vs] cmake --build . --config Release
