@@ -33,12 +33,12 @@ install:
   - if [%COMPILER%]==[vs] cd %VCPKG_ROOT%
   - if [%COMPILER%]==[vs] bootstrap-vcpkg.bat
   - if [%COMPILER%]==[vs] vcpkg integrate install
-  - if [%COMPILER%]==[vc] vcpkg update
+  - if [%COMPILER%]==[vs] vcpkg update
   - if [%COMPILER%]==[vs] vcpkg install freeglut opengl
   - cd %WORKSPACE%\Walkers\
   - mkdir build
   - cd build
 
 build_script:
-  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win64" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" -DOMP=OFF
-  - if [%COMPILER%]==[vs] cmake --build . --config Release
+  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win64" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" "-DCMAKE_BUILD_TYPE=Debug" "-DOMP=OFF"
+  - if [%COMPILER%]==[vs] cmake --build .
