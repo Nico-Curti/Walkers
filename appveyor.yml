@@ -40,5 +40,5 @@ install:
   - cd build
 
 build_script:
-  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win64" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" -DOMP=OFF
+  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win32" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" -DOMP=OFF
   - if [%COMPILER%]==[vs] cmake --build . --config Release

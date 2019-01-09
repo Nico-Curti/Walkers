@@ -22,20 +22,21 @@ matrix:
             - libxmu-dev
       env: BUILD=linux-gcc
 
-    - os: osx
-      compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-7
-          packages:
-            - clang-7.0
-      env:
-        - CXX=clang++-7
-        - LINKER_FLAGS="-stdlib=libc++ -lc++abi"
-        - CXXFLAGS="-stdlib=libc++"
-        - BUILD=osx-clang
+# NOT SUPPORT shared_ptr<float[]> yet!
+#    - os: osx
+#      compiler: clang
+#      addons:
+#        apt:
+#          sources:
+#            - ubuntu-toolchain-r-test
+#            - llvm-toolchain-trusty-7
+#          packages:
+#            - clang-7.0
+#      env:
+#        - CXX=clang++-7
+#        - LINKER_FLAGS="-stdlib=libc++ -lc++abi"
+#        - CXXFLAGS="-stdlib=libc++"
+#        - BUILD=osx-clang
 
 before_install:
   - pip install --user codecov

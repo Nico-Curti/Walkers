@@ -1,6 +1,6 @@
 | **Authors**  | **Project** | **Build Status**              | **Latest Version** | **License** |
 |:------------:|:-----------:|:-----------------------------:|:------------------:|:-----------:|
-|   N. Curti   |   Walkers   | **Linux/MacOS** : [![Travis](https://travis-ci.com/Nico-Curti/Walkers.svg?branch=master)](https://travis-ci.com/Nico-Curti/Walkers) <br/> **Windows** : [![appveyor](https://ci.appveyor.com/api/projects/status/x7sbj6atp1a9cwuv?svg=true)](https://ci.appveyor.com/project/Nico-Curti/walkers)  | ![version](https://img.shields.io/badge/PyPI-v1.0.0-orange.svg?style=plastic) | [![license](https://img.shields.io/badge/license-GPL-blue.svg?style=plastic)](https://github.com/Nico-Curti/Walkers/blob/master/LICENSE)
+|   N. Curti   |   Walkers   | **Linux** : [![Travis](https://travis-ci.com/Nico-Curti/Walkers.svg?branch=master)](https://travis-ci.com/Nico-Curti/Walkers) <br/> **Windows** : [![appveyor](https://ci.appveyor.com/api/projects/status/x7sbj6atp1a9cwuv?svg=true)](https://ci.appveyor.com/project/Nico-Curti/walkers)  | ![version](https://img.shields.io/badge/PyPI-v1.0.0-orange.svg?style=plastic) | [![license](https://img.shields.io/badge/license-GPL-blue.svg?style=plastic)](https://github.com/Nico-Curti/Walkers/blob/master/LICENSE)
 
 [![GitHub pull-requests](https://img.shields.io/github/issues-pr/Nico-Curti/walkers.svg?style=plastic)](https://github.com/Nico-Curti/walkers/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/Nico-Curti/walkers.svg?style=plastic)](https://github.com/Nico-Curti/walkers/issues)
