@@ -7,7 +7,7 @@ environment:
     VCPKG_ROOT: C:\projects\vcpkg
     VCPKG_DEFAULT_TRIPLET: x64-windows-physycom
     matrix:
-    - platform: Win32
+    - platform: Win64
       COMPILER: vs
 
 install:
@@ -40,5 +40,5 @@ install:
   - cd build
 
 build_script:
-  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win32" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" -DOMP=OFF
+  - if [%COMPILER%]==[vs] cmake .. -G "Visual Studio 15 2017 Win64" "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" "-DVCPKG_TARGET_TRIPLET=%VCPKG_DEFAULT_TRIPLET%" -DOMP=OFF
   - if [%COMPILER%]==[vs] cmake --build . --config Release
