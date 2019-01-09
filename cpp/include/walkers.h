@@ -10,6 +10,7 @@
 #include <numeric>
 #include <utility>
 #include <functional>
+#include <string>
 
 #include <solution.h>
 

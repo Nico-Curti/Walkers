@@ -9,6 +9,10 @@
 #include <assert.h>
 #endif
 
+#ifndef M_PI
+static constexpr float M_PI = 3.14159265358979323846f;
+#endif
+
 struct
 {
 private:
