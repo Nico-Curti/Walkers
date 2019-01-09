@@ -31,14 +31,6 @@ matrix:
             - llvm-toolchain-trusty-7
           packages:
             - clang-7.0
-            - libstdc++7
-            - freeglut3-dev
-            - libgl1-mesa-dev
-            - libglu1-mesa-dev
-            - libxinerama-dev
-            - libjpeg-dev
-            - libxi-dev
-            - libxmu-dev
       env:
         - CXX=clang++-7
         - LINKER_FLAGS="-stdlib=libc++ -lc++abi"
@@ -70,7 +62,7 @@ install:
   - if [[ "$BUILD" == "osx-clang" ]]; then ${CXX} --version                                                                              ;fi
   ###############################################################################################################################################
   - if [[ "$BUILD" == "osx-clang" ]]; then brew update                                                                                   ;fi
-  - if [[ "$BUILD" == "osx-clang" ]]; then brew install freeglut3                                                                        ;fi
+  - if [[ "$BUILD" == "osx-clang" ]]; then brew install freeglut glfw3                                                                   ;fi
 
   # Link gcc-7 and g++-7 to their standard commands
   - if [[ "$BUILD" == "linux-gcc" ]]; then sudo ln -s /usr/bin/gcc-8 /usr/local/bin/gcc                                                  ;fi
