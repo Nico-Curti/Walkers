@@ -69,6 +69,7 @@ endif()
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
 
 #################################################################
 #                         SETTING DIRECTORIES                   #
@@ -79,7 +80,7 @@ set(INC_DIR    ./cpp/include)
 set(EXAMPLE    ./example)
 set(OUT_DIR    ./bin)
 
-set(linked_libs ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
+set(linked_libs ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} ${GLEW_LIBRARIES})
 
 file(GLOB HPP    "${HPP_DIR}/*.hpp")
 file(GLOB HEADER "${INC_DIR}/*.h"  )
@@ -89,7 +90,9 @@ file(GLOB VIEWER "${HPP_DIR}/viewer/*.cpp")
 include_directories(${INC_DIR})
 include_directories(${HPP_DIR})
 include_directories(${INC_DIR}/viewer)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR})
+include_directories(${OPENGL_INCLUDE_DIRS})
+include_directories(${GLUT_INCLUDE_DIR})
+include_directories(${GLEW_INCLUDE_DIRS})
 
 #################################################################
 #                          SUMMARY                              #

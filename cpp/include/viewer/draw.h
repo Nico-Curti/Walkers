@@ -14,6 +14,7 @@
 #include <GL/freeglut.h>
 #include <iostream>
 
+
 #define LIGHT
 static constexpr int WIDTH  = 500;
 static constexpr int HEIGHT = 500;
