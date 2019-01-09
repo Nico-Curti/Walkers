@@ -79,7 +79,7 @@ set(INC_DIR    ./cpp/include)
 set(EXAMPLE    ./example)
 set(OUT_DIR    ./bin)
 
-set(linked_libs ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLUT_LIBRARIES})
+set(linked_libs ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 
 file(GLOB HPP    "${HPP_DIR}/*.hpp")
 file(GLOB HEADER "${INC_DIR}/*.h"  )

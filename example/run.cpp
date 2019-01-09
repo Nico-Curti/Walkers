@@ -158,7 +158,7 @@ static void usage()
 int main(int argc, char **argv)
 {
   const int dim = 2;
-  int optmizer, landscape;
+  int optimizer, landscape;
 
   if (argc < 3)
   {
@@ -166,7 +166,10 @@ int main(int argc, char **argv)
     std::exit(1);
   }
 
-  switch (optmizer)
+  optimizer = std::stoi(argv[1]);
+  landscape = std::stoi(argv[2]);
+
+  switch (optimizer)
   {
     case _bat:
     {
