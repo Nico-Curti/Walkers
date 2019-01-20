@@ -56,7 +56,7 @@ sudo apt-get update
 sudo apt-get install -y freeglut3-dev libgl1-mesa-dev libglu1-mesa-dev libxinerama-dev libjpeg-dev libxi-dev libxmu-dev
 ```
 
-5) Build the project with CMake (enable or disable OMP with the define **-DOMP**:
+4) Build the project with CMake (enable or disable OMP with the define **-DOMP**:
 
 ```bash
 cd $WORKSPACE
