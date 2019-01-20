@@ -4,7 +4,7 @@ The Walkers project is inspired by the [EvoloPy](https://github.com/7ossam81/Evo
 
 # Installation
 
-For the **Python installation** see [here](https://github.com/Nico-Curti/Walkers/tree/master/Walkers/docs/python_install.md).
+For the **Python installation** see [here](https://github.com/Nico-Curti/Walkers/blob/master/docs/python_install.md).
 
-For the **C++ installation** see [here](https://github.com/Nico-Curti/Walkers/tree/master/Walkers/docs/cpp_install.md).
+For the **C++ installation** see [here](https://github.com/Nico-Curti/Walkers/blob/master/docs/cpp_install.md).
 

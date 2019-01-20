@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.8.2)
-project (Walkers LANGUAGES CXX VERSION 1.0.1 DESCRIPTION "Random Walkers simulator")
+project (Walkers LANGUAGES CXX VERSION 1.0.0 DESCRIPTION "Random Walkers simulator")
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 

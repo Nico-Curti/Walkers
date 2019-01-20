@@ -87,7 +87,7 @@ xcode-select --install
 brew update
 brew upgrade
 brew install gcc@8
-brew install cmake make git ninja pkg-config freeglut
+brew install cmake make git ninja pkg-config freeglut glfw3
 ```
 
 4) Define a work folder, which we will call WORKSPACE in this tutorial: this could be a "Code" folder in our home, a "c++" folder on our desktop, whatever you want. Create it if you don't already have, using your favourite method (mkdir in bash, or from the graphical interface in Finder). We will now define an environment variable to tell the system where our folder is. Please note down the full path of this folder, which will look like /home/$(whoami)/code/
@@ -174,6 +174,7 @@ PS Code\vcpkg>        .\vcpkg integrate install
 ```PowerShell
 PS \>                 cd $env:WORKSPACE
 PS Code>              cd vcpkg
+PS Code\vcpkg>        .\vcpkg update
 PS Code\vcpkg>        .\vcpkg install freeglut opengl
 PS Code\vcpkg>        rmdir .\buildtrees\
 PS Code\vcpkg>        cd $env:WORKSPACE
