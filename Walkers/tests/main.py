@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from Walkers import landscape
 import Walkers.optimizers as opt

@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!/usr/bin/env python
 
 class Solution:
 
@@ -22,3 +22,14 @@ class Solution:
 
     self.walk           = []
     self.population     = []
+
+  def __repr__(self):
+    class_name = self.__class__.__name__
+    return '<%s Class>'%(class_name)
+
+  def __str__(self):
+    fmt_str  = 'Solution of %s algorithm\n'%(self.optimizer)
+    fmt_str += 'Score function: %s <dim=%d, n_pop=%d>'%(self.objfname, self.max_iters, self.n_population)
+    fmt_str += 'Best Solution found: %.3f\n'%(self.best)
+    fmt_str += 'Estimated in %.3f sec\n'%(self.execution_time)
+    return fmt_str

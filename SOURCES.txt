@@ -2,6 +2,7 @@ setup.py
 Walkers/__init__.py
 Walkers/landscape.py
 Walkers/solution.py
+Walkers/measures.py
 Walkers/__version__.py
 Walkers/optimizers/bat.py
 Walkers/optimizers/bbo.py

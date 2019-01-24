@@ -1,11 +1,11 @@
-#!usr/bin/python
+#!/usr/bin/env python
 
 # Reference : https://www.sciencedirect.com/science/article/pii/S0950705115002580
 
 import numpy as np
 import time
 import sys
-from solution import Solution
+from ..solution import Solution
 
 def mfo(objfunc,
         lower_bound,
@@ -82,16 +82,15 @@ def mfo(objfunc,
 
 
 if __name__ == "__main__":
-  # F10
-  score_func = lambda x: -20. * np.exp(-.2 * np.sqrt(sum(x*x) / len(x)))     \
-                         - np.exp(sum(np.cos(2. * np.pi * x)) / len(x)) \
-                         + 22.718281828459045
+
+  from ..landscape import AckleyFunction
 
   n_population = 50
   max_iters = 500
   lower_bound = -32
   upper_bound = 32
   dim = 30
+  score_func = AckleyFunction(dim=dim)
 
   sol = mfo(objfunc = score_func,
             lower_bound = lower_bound,

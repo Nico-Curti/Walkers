@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!/usr/bin/env python
 
 # Reference: https://research.ijcaonline.org/volume69/number3/pxc3887528.pdf
 #            http://www2.siit.tu.ac.th/bunyarit/publications/2014_Aor_ADCONIP2014_Japan.pdf
@@ -94,13 +94,14 @@ def ffa( objfunc,
 
 if __name__ == "__main__":
 
-  from ..landscape import AckleyFunction as score_func
+  from ..landscape import AckleyFunction
 
   n_population = 50
   max_iters = 500
   lower_bound = -32
   upper_bound = 32
   dim = 30
+  score_func = AckleyFunction(dim=dim)
 
   sol = ffa(objfunc = score_func,
             lower_bound = lower_bound,

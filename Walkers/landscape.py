@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!/usr/bin/env python
 import numpy as np
 
 # Reference: https://www.sfu.ca/~ssurjano/optimization.html

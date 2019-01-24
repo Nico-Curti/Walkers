@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!/usr/bin/env python
 
 # Refence : https://www.sciencedirect.com/science/article/pii/S2214785317313433
 #           https://www.cs.tufts.edu/comp/150GA/homeworks/hw3/_reading7%20Cuckoo%20search.pdf
@@ -119,13 +119,14 @@ def cs( objfunc,
 
 if __name__ == "__main__":
 
-  from ..landscape import AckleyFunction as score_func
+  from ..landscape import AckleyFunction
 
   n_population = 50
   max_iters = 500
   lower_bound = -32
   upper_bound = 32
   dim = 30
+  score_func = AckleyFunction(dim=dim)
 
   sol = cs(objfunc = score_func,
            lower_bound = lower_bound,

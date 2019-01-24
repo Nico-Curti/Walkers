@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!/usr/bin/env python
 
 # Reference : https://en.wikiversity.org/wiki/Whale_Optimization_Algorithm
 
@@ -113,13 +113,14 @@ def woa(objfunc,
 
 if __name__ == "__main__":
 
-  from ..landscape import AckleyFunction as score_func
+  from ..landscape import AckleyFunction
 
   n_population = 50
   max_iters = 500
   lower_bound = -32
   upper_bound = 32
   dim = 30
+  score_func = AckleyFunction(dim=dim)
 
   sol = woa(objfunc = score_func,
             lower_bound = lower_bound,
