@@ -57,7 +57,7 @@ class Measures(object):
     ntau    = nt0 - stat_min
     self.eav = None # TODO
 
-  def autocorrFFT(x):
+  def autocorrFFT(self, x):
     N = len(x)
     F = np.fft.fft(x, n=2*N)  #2*N because of zero-padding
     PSD = F * F.conjugate()
@@ -66,11 +66,11 @@ class Measures(object):
     n   = np.linspace(1./N, 1, num=N) #divide res(m) by (N-m)
     return res * n #this is the autocorrelation in convention A
 
-  def msd_fft(r):
+  def msd_fft(self, r):
     N  = len(r)
     D  = np.square(r).sum(axis=1)
     D  = np.append(D,0)
-    S2 = sum([autocorrFFT(r[:, i]) for i in range(r.shape[1])])
+    S2 = sum([self.autocorrFFT(r[:, i]) for i in range(r.shape[1])])
     Q  = 2.*D.sum()
     S1 = np.empty(shape=(N,))
     for m in range(N):
@@ -104,6 +104,6 @@ if __name__ == '__main__':
 
   N = 1024
   dim = 3
-  coords = np.random.uniform(low=0., high=1., size=(n_population, dim))
+  coords = np.random.uniform(low=0., high=1., size=(N, dim))
   stat_min = 10
 

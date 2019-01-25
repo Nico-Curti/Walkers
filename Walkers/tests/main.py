@@ -29,7 +29,7 @@ if __name__ == '__main__':
   dim          = int(args.dim)
   function     = args.landscape
   optimizer    = args.optimizer
-  view         = bool(args.view)
+  view         = bool(int(args.view))
 
   functions = [m for m in dir(landscape) if m.endswith('Function') and m != 'ObjectiveFunction']
   try:

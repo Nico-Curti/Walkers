@@ -29,7 +29,7 @@ class Solution:
 
   def __str__(self):
     fmt_str  = 'Solution of %s algorithm\n'%(self.optimizer)
-    fmt_str += 'Score function: %s <dim=%d, n_pop=%d>'%(self.objfname, self.max_iters, self.n_population)
+    fmt_str += 'Score function: %s <dim=%d, n_pop=%d>'%(self.objfname, self.dim, self.n_population)
     fmt_str += 'Best Solution found: %.3f\n'%(self.best)
-    fmt_str += 'Estimated in %.3f sec\n'%(self.execution_time)
+    fmt_str += 'Estimated in %.3f sec (it=%d)\n'%(self.execution_time, self.max_iters)
     return fmt_str

@@ -99,11 +99,11 @@ def cs( objfunc,
       best = np.array(new_nest[:, tmp_best], ndmin=2).T
 
     # Update convergence curve
-    walk[t] = best
+    walk[t] = best.T
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,
-                       '=' * int(t / 20),
+                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
                        fmin,
                        time.time() - sol.start_time))
   sys.stdout.write('\n')

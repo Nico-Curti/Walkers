@@ -92,9 +92,9 @@ def bat(objfunc,
     walk[t] = best
 
     sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+    sys.stdout.write("It %-5d: |%-25s| %.3f %.3f sec"
                      %(t,
-                       '=' * int(t / 20),
+                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
                        fmin,
                        time.time() - sol.start_time))
   sys.stdout.write('\n')
