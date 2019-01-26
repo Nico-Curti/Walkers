@@ -93,7 +93,7 @@ def woa(objfunc,
 
 
     # Update convergence curve
-    walk[t] = leader_pos
+    walk[t] = leader_pos.T
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
                      %(t,

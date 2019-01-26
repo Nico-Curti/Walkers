@@ -22,7 +22,7 @@ def ffa( objfunc,
         beta0 = 1.,   #
         gamma = 1.,   # Absorption coefficient
         ns = None,
-        ssed = 0
+        seed = 0
         ):
 
   np.random.seed(seed)

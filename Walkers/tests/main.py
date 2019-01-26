@@ -15,6 +15,7 @@ if __name__ == '__main__':
   parser.add_argument('-i', required=False, dest='max_iters',    action='store', help='Max number of iterations', default=500)
   parser.add_argument('-d', required=False, dest='dim',          action='store', help='Dimension of the problem', default=2)
   parser.add_argument('-v', required=False, dest='view',         action='store', help='Able/Disable viewer',      default=False)
+  parser.add_argument('-p', required=False, dest='parameters',   action='store', help='Optimizer parameters',     default=dict())
   parser.add_argument('-l', required=True,  dest='landscape',    action='store', help='Landscape name to test')
   parser.add_argument('-o', required=True,  dest='optimizer',    action='store', help='Optimizer name to test')
 
@@ -30,6 +31,7 @@ if __name__ == '__main__':
   function     = args.landscape
   optimizer    = args.optimizer
   view         = bool(int(args.view))
+  parameters   = eval(args.parameters)
 
   functions = [m for m in dir(landscape) if m.endswith('Function') and m != 'ObjectiveFunction']
   try:
@@ -52,7 +54,8 @@ if __name__ == '__main__':
                   lower_bound  = lower_bound,
                   upper_bound  = upper_bound,
                   n_population = n_population,
-                  max_iters    = max_iters
+                  max_iters    = max_iters,
+                  **parameters
                   )
 
 

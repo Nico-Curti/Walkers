@@ -92,7 +92,7 @@ def gwo(objfunc,
 
     positions = (D_alpha + D_beta + D_delta) / 3
 
-    walk[t] = alpha_pos
+    walk[t] = alpha_pos.T
 
     sys.stdout.write('\r')
     sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
@@ -105,7 +105,7 @@ def gwo(objfunc,
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
-  sol.best       = fmin
+  sol.best       = alpha_score
   sol.population = positions.T
 
   return sol

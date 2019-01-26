@@ -43,7 +43,7 @@ def abc(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc, 1, pos)
+  fitness = np.apply_along_axis(objfunc.evaluate, 1, pos)
   best = np.argmin(fitness)
   fmin = fitness[best]
   best = pos[best, :]
@@ -56,7 +56,7 @@ def abc(objfunc,
     phi = np.random.uniform(low=-a, high=a, size=(trial.size, dim))
     new_pos = pos[trial] + (pos[trial] - component) * phi
     new_pos = np.clip(new_pos, lower_bound, upper_bound)
-    new_fit = np.apply_along_axis(objfunc, 1, new_pos)
+    new_fit = np.apply_along_axis(objfunc.evaluate, 1, new_pos)
 
     # update employeeBee
     idx, = np.nonzero(new_fit < fitness[:employers])
@@ -89,7 +89,7 @@ def abc(objfunc,
     phi = np.random.uniform(low=-a, high=a, size=(trial.size, dim))
     new_pos = pos[candidate][trial] + (pos[candidate][trial] - component) * phi
     new_pos = np.clip(new_pos, lower_bound, upper_bound)
-    new_fit = np.apply_along_axis(objfunc, 1, new_pos)
+    new_fit = np.apply_along_axis(objfunc.evaluate, 1, new_pos)
 
     idx, = np.nonzero(new_fit < fitness[employers:])
     pos[trial[idx]] = new_pos[idx]
@@ -100,7 +100,7 @@ def abc(objfunc,
     idx, = np.nonzero(trials >= max_trials)
     if idx.size:
       pos[idx, :] = np.random.uniform(low=lower_bound, high=upper_bound, size=(idx.size, dim))
-      fitness[idx] = np.apply_along_axis(objfunc, 1, pos[idx, :])
+      fitness[idx] = np.apply_along_axis(objfunc.evaluate, 1, pos[idx, :])
       trials[idx] = 0
 
     prob[trials[:employers] >= max_iters] = 0.

@@ -42,7 +42,7 @@ def mfo(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc, 0, positions)
+  fitness = np.apply_along_axis(objfunc.evaluate, 0, positions)
 
   idx = np.argsort(fitness)
   sort_pos = pos[idx, :]
@@ -53,7 +53,7 @@ def mfo(objfunc,
     # Check if moths go out of the search spaceand bring it back
     positions = np.clip(positions, lower_bound, upper_bound)
     # evaluate moths
-    fitness = np.apply_along_axis(objfunc, 0, positions)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, positions)
 
     t = (a - 1.) * np.random.uniform(low=1,
                                      high=(a - 1.) + 1,

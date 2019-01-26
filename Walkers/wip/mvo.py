@@ -49,7 +49,7 @@ def mvo(objfunc,
   # main loop
   for (t, wep), tdr in zip(enumerate(wept), tdrt):
     universes = np.clip(universes, lower_bound, upper_bound)
-    fitness = np.apply_along_axis(objfunc, 0, universes)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, universes)
 
     # Update the leader
     idx = np.argmin(fitness)

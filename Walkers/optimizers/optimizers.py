@@ -6,6 +6,7 @@ from .cfa import cfa
 from .cs import cs
 from .ffa import ffa
 from .fss import fss
+from .gao import gao
 from .gsa import gsa
 from .gwo import gwo
 from .pso import pso

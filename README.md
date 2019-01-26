@@ -16,6 +16,12 @@
 
 # Random Walkers Simulator
 
+<a href="https://github.com/Nico-Curti/Walkers/blob/master/Walkers/tests/main.py">
+<div class="image"<
+<img src="https://github.com/Nico-Curt/Walkers/blob/master/docs/img/example.png" width="266" height="191">
+</div>
+</a>
+
 The Walkers toolbox provides a set of optimization algorithms and random walk process inspired by natural process and physical equations. The package also includes a set of common score functions (landscape) to study the characteristics of each walkers and the pro and cons of each optimization strategy.
 
 1. [Prerequisites](#prerequisites)
