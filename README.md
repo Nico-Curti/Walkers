@@ -17,8 +17,8 @@
 # Random Walkers Simulator
 
 <a href="https://github.com/Nico-Curti/Walkers/blob/master/Walkers/tests/main.py">
-<div class="image"<
-<img src="https://github.com/Nico-Curti/Walkers/blob/master/docs/img/example.png" width="266" height="191">
+<div class="image">
+<img src="https://github.com/Nico-Curti/Walkers/blob/master/docs/img/example.png" width="266" height="191" class="center">
 </div>
 </a>
 
