@@ -14,11 +14,12 @@ def gwo(objfunc,
         dim,          # Number of dimensions
         n_population, # Population size
         max_iters,    # Number of generations
-        positions = None,
-        seed = 0
+        seed = 0,
+        pos = None,
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   alpha_score, beta_score, delta_score = np.inf, np.inf, np.inf
@@ -27,19 +28,21 @@ def gwo(objfunc,
                                    np.zeros(shape=(dim, n_population), dtype=float)
   walk = np.empty(shape=(max_iters, dim), dtype=float)
 
-  if positions == None:
+  if pos == None:
     # Initialize the population/solutions
-    positions = np.random.uniform(low=lower_bound,
+    pos = np.random.uniform(low=lower_bound,
                                   high=upper_bound,
                                   size=(dim, n_population))
   else:
-    positions = positions.T
-    assert(positions.shape == 2)
-    d, n = positions.shape
-    assert(d == dim)
-    assert(n == n_population)
+    pos = pos.T
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
+    d, n = pos.shape
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
-  print ("GWO is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("GWO is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -53,60 +56,61 @@ def gwo(objfunc,
   # main loop
   for t, a in enumerate(at):
     # Return back the search agents that go beyond the boundaries of the search space
-    positions = np.clip(positions, lower_bound, upper_bound)
+    pos = np.clip(pos, lower_bound, upper_bound)
     # compute objective function for each search agent
-    fitness = np.apply_along_axis(objfunc.evaluate, 0, positions)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, pos)
 
     # update alpha, beta and delta
     minpos   = np.argmin(fitness)
     if fitness[minpos] < alpha_score:
         alpha_score = fitness[minpos]
-        alpha_pos   = np.array(positions[:, minpos], ndmin=2).T
+        alpha_pos   = np.array(pos[:, minpos], ndmin=2).T
     if fitness[minpos] > alpha_score and \
        fitness[minpos] < beta_score:
         beta_score = fitness[minpos]
-        beta_pos   = np.array(positions[:, minpos], ndmin=2).T
+        beta_pos   = np.array(pos[:, minpos], ndmin=2).T
     if fitness[minpos] > alpha_score and \
        fitness[minpos] > beta_score  and \
        fitness[minpos] < delta_score:
         delta_score = fitness[minpos]
-        delta_pos   = np.array(positions[:, minpos], ndmin=2).T
+        delta_pos   = np.array(pos[:, minpos], ndmin=2).T
 
     r1 = np.random.uniform(low=0., high=1., size=(dim, n_population))
     r2 = np.random.uniform(low=0., high=1., size=(dim, n_population))
     A  = 2. * a * r1 - a
     C  = 2. * r2
-    D_alpha = alpha_pos - abs(C * alpha_pos - positions) * A
+    D_alpha = alpha_pos - abs(C * alpha_pos - pos) * A
 
     r1 = np.random.uniform(low=0., high=1., size=(dim, n_population))
     r2 = np.random.uniform(low=0., high=1., size=(dim, n_population))
     A  = 2. * a * r1 - a
     C  = 2. * r2
-    D_beta = beta_pos - abs(C * beta_pos - positions) * A
+    D_beta = beta_pos - abs(C * beta_pos - pos) * A
 
     r1 = np.random.uniform(low=0., high=1., size=(dim, n_population))
     r2 = np.random.uniform(low=0., high=1., size=(dim, n_population))
     A  = 2. * a * r1 - a
     C  = 2. * r2
-    D_delta = delta_pos - abs(C * delta_pos - positions) * A
+    D_delta = delta_pos - abs(C * delta_pos - pos) * A
 
-    positions = (D_alpha + D_beta + D_delta) / 3
+    pos = (D_alpha + D_beta + D_delta) / 3
 
     walk[t] = alpha_pos.T
-
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       alpha_score,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         alpha_score,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = alpha_score
-  sol.population = positions.T
+  sol.population = pos.T
 
   return sol
 

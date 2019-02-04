@@ -63,7 +63,6 @@ if __name__ == '__main__':
                   **parameters
                   )
 
-
   if dim != 2 and view:
     raise UserWarning('The viewer option can be set only for dim = 2')
     view = False

@@ -14,25 +14,35 @@ def mfo(objfunc,
         n_population, # Population size
         max_iters,    # Number of generations
         b = 1.,       #
-        positions = None,
-        seed = 0
+        seed = 0,
+        pos = None,
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
 
-  if positions == None:
-    positions = np.random.uniform(low=lower_bound,
+  if pos == None:
+    pos = np.random.uniform(low=lower_bound,
                                   high=upper_bound,
                                   size=(dim, n_population))
+  else:
+    pos = pos.T
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
+    d, n = pos.shape
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
+
 
   at = np.linspace(-1, -2, num=max_iters)
   flames = [np.round(n_population - i*(n_population - 1)/max_iters)
             for i in range(1, max_iters + 1)]
 
-  print ("MFO is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("MFO is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -42,7 +52,7 @@ def mfo(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc.evaluate, 0, positions)
+  fitness = np.apply_along_axis(objfunc.evaluate, 0, pos)
 
   idx = np.argsort(fitness)
   sort_pos = pos[idx, :]
@@ -51,32 +61,33 @@ def mfo(objfunc,
   # main loop
   for (t, a), flame in zip(enumerate(at), flames):
     # Check if moths go out of the search spaceand bring it back
-    positions = np.clip(positions, lower_bound, upper_bound)
+    pos = np.clip(pos, lower_bound, upper_bound)
     # evaluate moths
-    fitness = np.apply_along_axis(objfunc.evaluate, 0, positions)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, pos)
 
     t = (a - 1.) * np.random.uniform(low=1,
                                      high=(a - 1.) + 1,
                                      size=(dim, n_population))
-    positions[:, : flame] = * np.exp(b * t) * np.cos(t * 2. * np.pi) +
-    positions[:, flame: ] = * np.exp(b * t) * np.cos(t * 2. * np.pi) +
+    pos[:, : flame] = * np.exp(b * t) * np.cos(t * 2. * np.pi) +
+    pos[:, flame: ] = * np.exp(b * t) * np.cos(t * 2. * np.pi) +
 
     # Update convergence curve
     walk[t] = fmin
-
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       fmin,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         fmin,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = fmin
-  sol.population = positions
+  sol.population = pos
 
   return sol
 

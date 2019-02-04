@@ -16,19 +16,28 @@ def mvo(objfunc,
         max_iters,    # Number of generations
         wep_max = 1., #
         wep_min = .2, #
-        universes = None,
-        seed = 0
+        seed = 0,
+        pos = None,
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters,), dtype=float)
 
-  if universes == None:
-    universes = np.random.uniform(low=lower_bound,
+  if pos == None:
+    pos = np.random.uniform(low=lower_bound,
                                   high=upper_bound,
                                   size=(dim, n_population))
+  else:
+    pos = pos.T
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
+    d, n = pos.shape
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
+
 
   tdrt = [1. - i**.16666 / max_iters**.1666 for i in range(max_iters)]
   wept = np.linspace(wep_min, wep_max, num=max_iters)
@@ -36,7 +45,8 @@ def mvo(objfunc,
   score = np.inf
   pos = np.zeros(shape=(1, dim), dtype=float)
 
-  print ("MVO is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("MVO is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -48,8 +58,8 @@ def mvo(objfunc,
 
   # main loop
   for (t, wep), tdr in zip(enumerate(wept), tdrt):
-    universes = np.clip(universes, lower_bound, upper_bound)
-    fitness = np.apply_along_axis(objfunc.evaluate, 0, universes)
+    pos = np.clip(pos, lower_bound, upper_bound)
+    fitness = np.apply_along_axis(objfunc.evaluate, 0, pos)
 
     # Update the leader
     idx = np.argmin(fitness)
@@ -61,19 +71,21 @@ def mvo(objfunc,
 
     # Update convergence curve
     walk[t] = leader_score
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       score,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         score,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = leader_score
-  sol.population = universes
+  sol.population = pos
 
   return sol
 

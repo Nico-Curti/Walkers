@@ -3,6 +3,7 @@
 import numpy as np
 import time
 import sys
+import warnings
 from ..solution import Solution
 
 def gao(objfunc,
@@ -13,11 +14,12 @@ def gao(objfunc,
         max_iters,
         elite_rate = .1,
         mutation_rate = .3,
+        seed = 0,
         pos = None,
-        seed = 0
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters, dim), dtype=float)
@@ -27,15 +29,16 @@ def gao(objfunc,
                             high=upper_bound,
                             size=(n_population, dim))
   else:
-    assert(pos.shape == 2)
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
     n, d = pos.shape
-    assert(n == n_population)
-    assert(d == dim)
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
   elite = int(n_population * elite_rate)
   if elite == 0:
-    raise UserWarning('The elite rate is too small! Automatically set to the 10\% of population')
-    elite = int(.1 * n_population)
+    warnings.warn('The elite rate is too small! Automatically set to 1')
+    elite = 1
 
 
   new_gen  = np.zeros(shape=(n_population, dim), dtype=float)
@@ -48,8 +51,8 @@ def gao(objfunc,
   rngswap  = np.random.choice(a=[True, False],
                                size=(max_iters, n_population - elite, dim))
 
-
-  print ("GAO is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("GAO is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -84,13 +87,15 @@ def gao(objfunc,
     pos    = np.clip(new_gen, lower_bound, upper_bound)
 
     walk[t] = best
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: |%-25s| %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       fmin,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: |%-25s| %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         fmin,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time

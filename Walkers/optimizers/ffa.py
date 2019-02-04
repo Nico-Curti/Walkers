@@ -21,26 +21,29 @@ def ffa( objfunc,
         betamin = .2, # minimum value of beta
         beta0 = 1.,   #
         gamma = 1.,   # Absorption coefficient
-        ns = None,
-        seed = 0
+        seed = 0,
+        pos = None,
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
-  if ns == None:
-    ns = np.random.uniform(low=lower_bound,
+  if pos == None:
+    pos = np.random.uniform(low=lower_bound,
                            high=upper_bound,
                            size=(n_population, dim))
   else:
-    assert(ns.shape == 2)
-    n, d = ns.shape
-    assert(n == n_population)
-    assert(d == dim)
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
+    n, d = pos.shape
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
   walk = np.empty(shape=(max_iters, dim), dtype=float)
   domain = abs(upper_bound - lower_bound)
 
-  print ("FFA is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("FFA is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -55,13 +58,13 @@ def ffa( objfunc,
     # This line of reducing alpha is optional
     alpha = new_alpha(alpha, max_iters)
     # Evaluate new solutions (for all n fireflies)
-    fitness = np.apply_along_axis(objfunc.evaluate, 1, ns)
+    fitness = np.apply_along_axis(objfunc.evaluate, 1, pos)
 
     best = np.argmin(fitness)
     fmin = fitness[best]
-    best = ns[best]
+    best = pos[best]
 
-    r = squareform(pdist(ns, "euclidean"))
+    r = squareform(pdist(pos, "euclidean"))
     lightn, light0 = np.meshgrid(fitness, fitness)
     ii, jj = (light0 > lightn).nonzero()
     # The attractiveness parameter beta=exp(-gamma*r)
@@ -71,23 +74,25 @@ def ffa( objfunc,
                             high=.5 * domain * alpha,
                             size=(n_population, n_population, dim))
     for i, j, b, r in zip(ii, jj, beta[ii, jj], rng[ii, jj]):
-      ns[i, :] = ns[i, :] * (1. - b) + ns[j, :] * b + r
+      pos[i, :] = pos[i, :] * (1. - b) + pos[j, :] * b + r
 
     # Update convergence curve
     walk[t] = best
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       fmin,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         fmin,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = fmin
-  sol.population = ns
+  sol.population = pos
 
   return sol
 

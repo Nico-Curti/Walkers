@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import pickle
 
 class Solution:
 
@@ -22,6 +23,14 @@ class Solution:
 
     self.walk           = []
     self.population     = []
+
+  def dump(self, path):
+    with open(path, 'wb') as fp:
+      pickle.dump(self, fp)
+
+  def load(self, path):
+    with open(path, 'rb') as fp:
+      self = pickle.load(fp)
 
   def __repr__(self):
     class_name = self.__class__.__name__

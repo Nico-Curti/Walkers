@@ -18,11 +18,12 @@ def pso(objfunc,
         wmin = .2,    #
         c1   = 2.,    #
         c2   = 2.,    #
+        seed = 0,
         pos  = None,
-        seed = 0
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters, dim), dtype=float)
@@ -33,10 +34,11 @@ def pso(objfunc,
                             size=(dim, n_population))
   else:
     pos = pos.T
-    assert(pos.shape == 2)
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
     d, n = pos.shape
-    assert(d == dim)
-    assert(n == n_population)
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
   vel = np.zeros(shape=(dim, n_population))
   wt = np.linspace(wmax, wmin, num=max_iters)
@@ -45,7 +47,8 @@ def pso(objfunc,
   g_score = np.inf
   g_best  = np.zeros(shape=(1, dim))
 
-  print ("PSO is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("PSO is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -80,13 +83,15 @@ def pso(objfunc,
 
     # Update convergence curve
     walk[t] = g_best.T
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       g_score,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         g_score,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time

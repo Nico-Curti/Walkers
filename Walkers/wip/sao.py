@@ -3,6 +3,7 @@
 import numpy as np
 import time
 import sys
+import warnings
 from ..solution import Solution
 
 def sao(objfunc,
@@ -13,11 +14,12 @@ def sao(objfunc,
         max_iters,
         T0 = 1e-2,
         T1 = 1e-6,
+        seed = 0,
         pos = None,
-        seed = 0
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters, dim), dtype=float)
@@ -27,13 +29,14 @@ def sao(objfunc,
                             high=upper_bound,
                             size=(n_population, dim))
   else:
-    assert(pos.shape == 2)
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
     n, d = pos.shape
-    assert(n == n_population)
-    assert(d == dim)
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
   if T1 > T0:
-    raise UserWarning('Final temperature major than minor. Automatically swapped')
+    warnings.warn('Final temperature major than minor. Automatically swapped')
     tmp = T0
     T0  = T1
     T1  = tmp
@@ -41,8 +44,8 @@ def sao(objfunc,
   temperature = np.logspace(np.log10(T0), np.log10(T1), max_iters, endpoint=False)
   new_gen  = np.zeros(shape=(n_population, dim), dtype=float)
 
-
-  print ("SAO is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("SAO is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -61,13 +64,15 @@ def sao(objfunc,
     pos    = np.clip(new_gen, lower_bound, upper_bound)
 
     walk[t] = best
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: |%-25s| %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       fmin,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: |%-25s| %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         fmin,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time

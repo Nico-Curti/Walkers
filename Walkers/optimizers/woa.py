@@ -14,11 +14,12 @@ def woa(objfunc,
         n_population, # Population size
         max_iters,    # Number of generations
         b   = 1.,     #
+        seed = 0,
         pos = None,
-        seed = 0
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters, dim), dtype=float)
@@ -29,10 +30,11 @@ def woa(objfunc,
                             size=(dim, n_population))
   else:
     pos = pos.T
-    assert(pos.shape == 2)
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
     d, n = pos.shape
-    assert(d == dim)
-    assert(n == n_population)
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
   # a decreases linearly fron 2 to 0 in Eq. (2.3)
   at = np.linspace(2, 0, num=max_iters)
@@ -41,7 +43,8 @@ def woa(objfunc,
   leader_score = np.inf
   leader_pos = np.zeros(shape=(1, dim), dtype=float)
 
-  print ("WOA is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("WOA is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -94,13 +97,15 @@ def woa(objfunc,
 
     # Update convergence curve
     walk[t] = leader_pos.T
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       leader_score,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         leader_score,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time

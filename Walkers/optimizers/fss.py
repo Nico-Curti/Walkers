@@ -20,11 +20,12 @@ def fss(objfunc,
         fstep_volitive=1e-3,
         min_w=1.,       #
         w_scale=2.,     #
+        seed = 0,
         pos = None,
-        seed = 0
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters, dim), dtype=float)
@@ -35,10 +36,11 @@ def fss(objfunc,
                             size=(dim, n_population))
   else:
     pos = pos.T
-    assert(pos.shape == 2)
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
     d, n = pos.shape
-    assert(d == dim)
-    assert(n == n_population)
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
   weight = np.repeat(w_scale * .5, repeats=n_population)
   tot_w = w_scale * .5 * n_population # aka sum(weight)
@@ -47,7 +49,8 @@ def fss(objfunc,
   steps = [step - i * (step - fstep) / max_iters for i in range(max_iters)]
   volitives = [step_volitive - i * (step_volitive - fstep_volitive) / max_iters for i in range(max_iters)]
 
-  print ("FSS is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("FSS is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -108,13 +111,15 @@ def fss(objfunc,
 
     # Update convergence curve
     walk[t] = best
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       fmin,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         fmin,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time

@@ -20,11 +20,12 @@ def gsa(objfunc,
         rpower = 1.,  #
         alpha = 20.,  #
         G0 = 100,     #
+        seed = 0,
         pos = None,
-        seed = 0
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   walk = np.empty(shape=(max_iters, dim), dtype=float)
@@ -35,10 +36,11 @@ def gsa(objfunc,
                             high=upper_bound,
                             size=(n_population, dim))
   else:
-    assert(pos.shape == 2)
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
     n, d = pos.shape
-    assert(n == n_population)
-    assert(d == dim)
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
   # Calculating Gravitational Constant
   Gt = G0 * np.exp(-alpha * np.arange(0, max_iters) / max_iters)
@@ -46,7 +48,8 @@ def gsa(objfunc,
   if elitist == 1.: kbest = np.round(n_population * (2. + (1. - np.linspace(0, 1., max_iters)) * (100. - 2.)) / 100.).astype(int)
   else:             kbest = np.repeat(n_population, repeats=max_iters)
 
-  print ("GSA is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("GSA is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -91,14 +94,15 @@ def gsa(objfunc,
     best = pos[best]
     # Update convergence curve
     walk[t] = best
-
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       fmin,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: [%-25s] %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         fmin,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time

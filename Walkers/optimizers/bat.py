@@ -20,30 +20,33 @@ def bat(objfunc,
         Qmin = 0.,    # Frequency minimum
         Qmax = 2.,    # Frequency maximum
         step = 1e-3,  # scale of normal random generator
-        Sol = None,
-        seed = 0
+        seed = 0,
+        pos = None,
+        verbose = True
         ):
 
-  np.random.seed(seed)
+  np.random.seed(int(seed))
 
   # Initializing arrays
   Qt = np.random.uniform(low=Qmin, high=Qmax, size=(max_iters, n_population))
   v  = np.zeros(shape=(dim, n_population), dtype=float) # velocities
   walk = np.empty(shape=(max_iters, dim), dtype=float)
 
-  if Sol == None:
+  if pos == None:
     # Initialize the population/solutions
-    Sol = np.random.uniform(low=lower_bound,
+    pos = np.random.uniform(low=lower_bound,
                             high=upper_bound,
                             size=(dim, n_population))
   else:
-    Sol = Sol.T
-    assert(Sol.shape == 2)
-    d, n = Sol.shape
-    assert(d == dim)
-    assert(n == n_population)
+    pos = pos.T
+    if pos.shape != 2:
+      raise Warning('Wrong dimension shape of old generation! Probably you should transpose')
+    d, n = pos.shape
+    if d != dim or n != n_population:
+      raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
-  print ("BAT is optimizing \"" + objfunc.__name__ + "\"")
+  if verbose:
+    print ("BAT is optimizing \"" + objfunc.__name__ + "\"")
 
   sol = Solution(dim          = dim,
                  n_population = n_population,
@@ -53,10 +56,10 @@ def bat(objfunc,
                  start_time   = time.time()
                  )
 
-  fitness = np.apply_along_axis(objfunc.evaluate, 0, Sol)
+  fitness = np.apply_along_axis(objfunc.evaluate, 0, pos)
   best = np.argmin(fitness)
   fmin = fitness[best]
-  best = np.array(Sol[:, best], ndmin=2)
+  best = np.array(pos[:, best], ndmin=2)
 
   rngt = np.random.uniform(low=0., high=1., size=(max_iters,
                                                   n_population))
@@ -67,8 +70,8 @@ def bat(objfunc,
   rng2t = rng2t < A
   # main loop
   for (t, Q), rng, rng2, dim_rng in zip(enumerate(Qt), rngt, rng2t, dim_rngt):
-    v += Q * (Sol - best.T)
-    S  = Sol + v
+    v += Q * (pos - best.T)
+    S  = pos + v
 
     # Pulse rate
     S[:, rng] = best.T + step * np.random.randn(dim, dim_rng)
@@ -78,32 +81,33 @@ def bat(objfunc,
 
     # Update if the solution improves
     upd = np.logical_and(rng2, fit_new <= fitness)
-    Sol[:, upd] = S[:, upd]
+    pos[:, upd] = S[:, upd]
     fitness[upd] = fit_new[upd]
 
     # check boundaries
-    Sol = np.clip(Sol, lower_bound, upper_bound)
+    pos = np.clip(pos, lower_bound, upper_bound)
 
     best = np.argmin(fitness)
     # Update the current best solution
     fmin = fitness[best]
-    best = np.array(Sol[:, best], ndmin=2)
+    best = np.array(pos[:, best], ndmin=2)
     # Update convergence curve
     walk[t] = best
-
-    sys.stdout.write('\r')
-    sys.stdout.write("It %-5d: |%-25s| %.3f %.3f sec"
-                     %(t,
-                       '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
-                       fmin,
-                       time.time() - sol.start_time))
-  sys.stdout.write('\n')
+    if verbose:
+      sys.stdout.write('\r')
+      sys.stdout.write("It %-5d: |%-25s| %.3f %.3f sec"
+                       %(t,
+                         '█' * int(t / (max_iters/26)) + '-' * (25 - int(t / (max_iters/26))),
+                         fmin,
+                         time.time() - sol.start_time))
+  if verbose:
+    sys.stdout.write('\n')
 
   sol.end_time   = time.time()
   sol.run_time   = sol.end_time - sol.start_time
   sol.walk       = walk
   sol.best       = fmin
-  sol.population = Sol.T
+  sol.population = pos.T
 
   return sol
 
