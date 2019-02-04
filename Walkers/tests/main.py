@@ -15,7 +15,7 @@ if __name__ == '__main__':
   parser.add_argument('-i', required=False, dest='max_iters',    action='store', help='Max number of iterations', default=500)
   parser.add_argument('-d', required=False, dest='dim',          action='store', help='Dimension of the problem', default=2)
   parser.add_argument('-v', required=False, dest='view',         action='store', help='Able/Disable viewer',      default=False)
-  parser.add_argument('-p', required=False, dest='parameters',   action='store', help='Optimizer parameters',     default=dict())
+  parser.add_argument('-p', required=False, dest='parameters',   action='store', help='Optimizer parameters',     default='dict()')
   parser.add_argument('-l', required=True,  dest='landscape',    action='store', help='Landscape name to test')
   parser.add_argument('-o', required=True,  dest='optimizer',    action='store', help='Optimizer name to test')
 
@@ -37,14 +37,19 @@ if __name__ == '__main__':
   try:
     function = eval('landscape.' + function + '(dim = %d)'%dim)
   except Exception:
-    print('Wrong landscape function name! Possible values are only %s'%functions)
+    print('Wrong landscape function name! Possible values are only: ')
+    print('- ', end='')
+    print(*functions, sep='\n- ', end='\n', flush=True)
     exit(1)
 
   optimizers = [m for m in dir(opt) if not m.startswith('__')]
   try:
     optimizer = eval('opt.' + optimizer)
   except Exception:
-    print('Wrong optimizer name! Possible values are only %s'%optimizers)
+    print('Wrong optimizer name! Possible values are only:')
+    print('- ', end='')
+    print(*optimizers, sep='\n- ', end='\n', flush=True)
+    exit(1)
 
   lower_bound, upper_bound = function.get_boundary()
 

@@ -142,21 +142,21 @@ class EggholderFunction(ObjectiveFunction):
   def get_boundary(self):
     return (self.lower_bound, self.upper_bound)
 
-class GramacyLeeFunction(ObjectiveFunction):
-
-  def __init__(self, dim=1):
-    assert(dim == 1)
-    super(GramacyLeeFunction, self).__init__('GramacyLee', dim, .5, 2.5)
-
-  def evaluate(self, arr):
-    assert(len(arr) == self.dim)
-    return .5 * np.sin(10. * np.pi * arr) / arr + (arr - 1.)**4
-
-  def get_minimum(self):
-    return [] # around (.6, -.9)
-
-  def get_boundary(self):
-    return (self.lower_bound, self.upper_bound)
+#class GramacyLeeFunction(ObjectiveFunction):
+#
+#  def __init__(self, dim=1):
+#    assert(dim == 1)
+#    super(GramacyLeeFunction, self).__init__('GramacyLee', dim, .5, 2.5)
+#
+#  def evaluate(self, arr):
+#    assert(len(arr) == self.dim)
+#    return .5 * np.sin(10. * np.pi * arr) / arr + (arr - 1.)**4
+#
+#  def get_minimum(self):
+#    return np.array([None]) # around (.6, -.9)
+#
+#  def get_boundary(self):
+#    return (self.lower_bound, self.upper_bound)
 
 
 class GrieWankFunction(ObjectiveFunction):
@@ -247,7 +247,7 @@ class McCormickFunction(ObjectiveFunction):
 #     return np.sum(c * np.exp(  ) * np.cos(np.pi * ) )
 #
 #   def get_minimum(self):
-#     return np.array([None]) # ignored
+#     return np.repeat(None, repeats=self.dim) # ignored
 #
 #   def get_boundary(self):
 #     return (self.lower_bound, self.upper_bound)
@@ -303,7 +303,7 @@ class LevyN13Function(ObjectiveFunction):
 #     return sum(  )
 #
 #   def get_minimum(self):
-#     return np.array([None]) # ignore
+#     return np.repeat(None, repeats=self.dim) # ignore
 #
 #   def get_boundary(self):
 #     return (self.lower_bound, self.upper_bound)
@@ -363,7 +363,7 @@ class SchafferN4Function(ObjectiveFunction):
 
   def __init__(self, dim=2):
     assert(dim == 2)
-    super(SchafferN2Function, self).__init__('SchafferN4', dim, -100., 100.)
+    super(SchafferN4Function, self).__init__('SchafferN4', dim, -100., 100.)
 
   def evaluate(self, arr):
     assert(len(arr) == self.dim)
@@ -371,7 +371,7 @@ class SchafferN4Function(ObjectiveFunction):
     return .5 + (np.cos(np.sin(abs(x*x - y*y))) - .5) / (1. + 1e-3*(x*x + y*y))**2
 
   def get_minimum(self):
-    return np.array([None])#np.zeros(shape=(self.dim,), dtype=float)
+    return np.repeat(None, repeats=self.dim)#np.zeros(shape=(self.dim,), dtype=float)
 
   def get_boundary(self):
     return (self.lower_bound, self.upper_bound)
@@ -406,7 +406,7 @@ class ShubertFunction(ObjectiveFunction):
     return np.sum(idx * np.cos( (idx + 1.)*x + idx )) * np.sum(idx * np.cos( (idx + 1.)*y + idx ))
 
   def get_minimum(self):
-    return np.array([None])#np.zeros(shape=(self.dim,), dtype=float)
+    return np.repeat(None, repeats=self.dim)#np.zeros(shape=(self.dim,), dtype=float)
 
   def get_boundary(self):
     return (self.lower_bound, self.upper_bound)
@@ -422,7 +422,7 @@ class SixHumpCamelFunction(ObjectiveFunction):
   def evaluate(self, arr):
     assert(len(arr) == self.dim)
     x, y = arr
-    return x**2 * (4. - 2.1 * x**2 + x**4 * 0.333333333) + x*y + (-4. + 4.*y*y)*y**y
+    return x**2 * (4. - 2.1 * x**2 + x**4 / 3.) + x*y + (-4. + 4.*y**2)*y**2
 
   def get_minimum(self):
     return np.array([(.0898, -.7126), (-.0898, .7126)])
@@ -440,7 +440,7 @@ class ThreeHumpCamelFunction(ObjectiveFunction):
   def evaluate(self, arr):
     assert(len(arr) == self.dim)
     x, y = arr
-    return 2. * x**2 - 1.05 * x**4 + 0.1666666666666 * x**6 + x * y + y**2
+    return 2. * x**2 - 1.05 * x**4 + x**6 / 6. + x * y + y**2
 
   def get_minimum(self):
     return np.zeros(shape=(self.dim,), dtype=float)
