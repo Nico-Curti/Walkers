@@ -37,6 +37,11 @@ def bbo(objfunc,
     if d != dim or n != n_population:
       raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
 
+  if elite > n_population - 1 or elite <= 0:
+    raise Warning('Wrong elite size! It must be in [1, n_population - 1]')
+  if type(elite) == float:
+    elite = int(elite)
+
   mut = np.linspace(n_population, 1., n_population) / (n_population + 1)
   lambda1t = (1. - mut).reshape((n_population, 1))
   smu = sum(mut)
