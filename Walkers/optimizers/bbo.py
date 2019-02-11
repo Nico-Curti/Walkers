@@ -39,7 +39,7 @@ def bbo(objfunc,
 
   if elite > n_population - 1 or elite <= 0:
     raise Warning('Wrong elite size! It must be in [1, n_population - 1]')
-  if type(elite) == float:
+  if isinstance(elite, float):
     elite = int(elite)
 
   mut = np.linspace(n_population, 1., n_population) / (n_population + 1)
