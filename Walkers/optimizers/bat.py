@@ -7,6 +7,7 @@
 import numpy as np
 import time
 import sys
+import warnings
 from ..solution import Solution
 
 def bat(objfunc,
@@ -44,6 +45,10 @@ def bat(objfunc,
     d, n = pos.shape
     if d != dim or n != n_population:
       raise Warning('Wrong dimension shape of old generation! Number of population or dims incompatible')
+
+  if Qmin > Qmax:
+    warnings.warn('Qmin greater than Qmax! Automatically swapped')
+    Qmin, Qmax = Qmax, Qmin
 
   if verbose:
     print ("BAT is optimizing \"" + objfunc.__name__ + "\"")

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from skopt import gp_minimize
 import inspect
+from .solution import Solution
 import Walkers.optimizers as opt
-from solution import Solution
 
 class OptimizeOptimizer(object):
 

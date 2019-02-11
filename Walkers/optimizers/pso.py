@@ -47,6 +47,10 @@ def pso(objfunc,
   g_score = np.inf
   g_best  = np.zeros(shape=(1, dim))
 
+  if wmin > wmax:
+    warnings.warn('wmin greater than wmax! Automatically swapped')
+    wmin, wmax = wmax, wmin
+
   if verbose:
     print ("PSO is optimizing \"" + objfunc.__name__ + "\"")
 

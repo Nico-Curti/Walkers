@@ -42,6 +42,10 @@ def ffa( objfunc,
   walk = np.empty(shape=(max_iters, dim), dtype=float)
   domain = abs(upper_bound - lower_bound)
 
+  if betamin > beta0:
+    warnings.warn('Beta-min greater than Beta-0! Automatically swapped')
+    betamin, beta0 = beta0, betamin
+
   if verbose:
     print ("FFA is optimizing \"" + objfunc.__name__ + "\"")
 
