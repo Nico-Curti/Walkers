@@ -2,6 +2,7 @@
 from skopt import gp_minimize
 import inspect
 import Walkers.optimizers as opt
+from solution import Solution
 
 class OptimizeOptimizer(object):
 
@@ -65,8 +66,6 @@ class BayesianOptimizer(object):
     lower_bound, upper_bound = objfunc.get_boundary()
 
     dim          = objfunc.dim
-    n_population = 50
-    max_iters    = 500
 
     def call_optimizer(hyperparams):
       sol = optimizer(objfunc,
@@ -80,15 +79,25 @@ class BayesianOptimizer(object):
                       verbose=False)
       return sol.best
 
-    return gp_minimize(lambda hyperparams : call_optimizer(hyperparams),
-                        bounds,
-                        acq_func = self.acq_func,
-                        n_calls  = self.n_calls,
-                        n_random_starts = self.n_random_starts,
-                        noise    = self.noise,
-                        random_state = self.seed,
-                        verbose=True
-                        )
+    res = gp_minimize(lambda hyperparams : call_optimizer(hyperparams),
+                      bounds,
+                      acq_func = self.acq_func,
+                      n_calls  = self.n_calls,
+                      n_random_starts = self.n_random_starts,
+                      noise    = self.noise,
+                      random_state = self.seed,
+                      verbose=True
+                      )
+    sol = Solution( dim = len(bounds),
+                    n_population = self.n_calls,
+                    max_iters = self.n_random_starts,
+                    optimizer = res['models'][0],
+                    objfname = optimizer.__name__ + '_' + objfunc.__name__
+                   )
+    sol.best = res['x']
+    sol.walk = res['x_iters']
+    return sol
+
 
 
 
