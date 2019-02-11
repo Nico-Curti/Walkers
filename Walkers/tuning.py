@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from skopt import gp_minimize
 import inspect
-from .solution import Solution
 import Walkers.optimizers as opt
+from .solution import Solution
 
 class OptimizeOptimizer(object):
 
@@ -62,7 +62,7 @@ class BayesianOptimizer(object):
     self.noise    = noise
     self.seed     = seed
 
-  def optimize(self, optimizer, objfunc, bounds, dim = 2, n_population = 50, max_iters = 500):
+  def optimize(self, optimizer, objfunc, bounds, dim = 2, n_population = 50, max_iters = 500, verbose = True):
     lower_bound, upper_bound = objfunc.get_boundary()
 
     dim          = objfunc.dim
@@ -86,7 +86,7 @@ class BayesianOptimizer(object):
                       n_random_starts = self.n_random_starts,
                       noise    = self.noise,
                       random_state = self.seed,
-                      verbose=True
+                      verbose = verbose
                       )
     sol = Solution( dim = len(bounds),
                     n_population = self.n_calls,

@@ -4,9 +4,9 @@ import pickle
 class Solution:
 
   def __init__( self,
-                dim = None,
-                n_population = None,
-                max_iters = None,
+                dim = -1,
+                n_population = -1,
+                max_iters = -1,
                 optimizer = "",
                 objfname  = "",
                 start_time = 0.
@@ -28,9 +28,10 @@ class Solution:
     with open(path, 'wb') as fp:
       pickle.dump(self, fp)
 
+  @classmethod
   def load(self, path):
     with open(path, 'rb') as fp:
-      self = pickle.load(fp)
+      return pickle.load(fp)
 
   def __getitem__(self, stat):
     var = eval('self.' + str(stat))
@@ -49,3 +50,16 @@ class Solution:
       fmt_str += 'Best Solution found: %.3f\n'%(self.best)
     fmt_str += 'Estimated in %.3f sec (it=%d)\n'%(self.execution_time, self.max_iters)
     return fmt_str
+
+
+
+if __name__ == '__main__':
+
+  sol = Solution()
+  sol.best = 3.14
+  print(sol)
+  sol.dump('dummy.sol')
+
+  sol2 = Solution.load('dummy.sol')
+  print(sol2)
+
