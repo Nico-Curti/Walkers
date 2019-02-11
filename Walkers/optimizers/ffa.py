@@ -7,6 +7,7 @@ import numpy as np
 from scipy.spatial.distance import squareform, pdist
 import time
 import sys
+import warnings
 from ..solution import Solution
 
 new_alpha = lambda alpha, max_iters : (1e-4/.9)**(1. / max_iters) * alpha

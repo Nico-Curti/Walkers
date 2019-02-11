@@ -5,6 +5,7 @@
 import numpy as np
 import time
 import sys
+import warnings
 from ..solution import Solution
 
 def pso(objfunc,
